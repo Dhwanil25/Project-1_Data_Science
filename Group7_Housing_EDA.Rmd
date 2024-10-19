@@ -1,0 +1,42 @@
+---
+title: '"Group 7 Project one EDA file"'
+author: "Yonathan Shimelis"
+date: "2024-10-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#Chunk one, let's use this for basic EDA, initial understanding of the dataset
+housing_data <- read.csv("C:/Users/shime/Downloads/zhvi-all-homes_md-va-dc_2021-2023.csv")
+str(data)
+summary(data)
+
+```
+Our dataset has `r nrow(housing_data)` observations
+We've also observed 9 variables, but likely won't be using all of them. 
+We have null values for ZHVI
+
+```{r}
+#Chunk two, breakdown/filtering of data by state
+
+dc_data <- subset(housing_data, State == "DC")
+md_data <- subset(housing_data, State == "MD")
+va_data <- subset(housing_data, State == "VA")
+
+mean_dc <- mean(dc_data$ZHVI)
+
+```
+Maryland and Virginia are the only of the three that has NA's with a total of 468 NAs'and 1028 NA's
+
+
+
+```{r} 
+#Chunk three, further breakdown 
+
+
+```
