@@ -10,7 +10,6 @@ output: html_document
 # Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
 # Once installed, load the library.
 library(ezids)
-library(lubridate)
 ```
 
 
@@ -21,20 +20,28 @@ knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 options(scientific=T, digits = 3) 
 ```
 
+# Step 1 
 
-```{r}
-#Chunk one, let's use this for basic EDA, initial understanding of the dataset
+**Loading the csv/data into the RMD file, observing summary statistics and structure.**
+
+```{r Chunk one}
+#Chunk one, let's use this for basic EDA, initial understanding of the data
 housing_data <- read.csv("C:/Users/shime/Downloads/zhvi-all-homes_md-va-dc_2021-2023.csv")
-str(data)
-summary(data)
+str(housing_data)
+summary(housing_data)
 
 ```
 Our dataset has `r nrow(housing_data)` observations
 We've also observed 9 variables, but likely won't be using all of them. 
 We have null values for ZHVI
 
-```{r}
-#Chunk two, breakdown/filtering of data by state
+# Step 2 
+
+**Break down the dataset by regions.**
+
+```{r Chunk two}
+#Using code we group the ZHVIs for each data together by regions/states, DC, MD, and VA
+
 
 dc_data <- subset(housing_data, State == "DC")
 md_data <- subset(housing_data, State == "MD")
@@ -45,23 +52,33 @@ va_data <- subset(housing_data, State == "VA")
 Maryland and Virginia are the only of the three that has NA's with a total of 468 NAs'and 1028 NA's
 
 
+# Step 3
 
-```{r} 
+**Finding the average ZHVI of each region over all three years as a whole**
+```{r Chunk three} 
 #Chunk three, further breakdown 
 
-#Average ZHVI of dc housing over the years
+#Average ZHVI of dc housing over all 3 years
 mean_dc <- mean(dc_data$ZHVI, na.rm = TRUE)
 mean_dc
 
-#Average ZHVI of va housing over the years
+#Average ZHVI of va housing over all 3 years
 mean_va <- mean(va_data$ZHVI, na.rm = TRUE)
 mean_va
 
-#Average ZHVI of md housing over the years
+#Average ZHVI of md housing over all 3 years
 mean_md <- mean(md_data$ZHVI, na.rm = TRUE)
 mean_md
 
-#Dc, md, and va split by year
+
+```
+We can see the average home value from 2021-2023 was the largest in DC (650863), Maryland(420935) and then Virginia(314345)
+
+# Step 4  
+
+**Separating the DC, Maryland, and Virginia data by year**
+```{r Chunk 4}
+#Create column 'Year' by taking the first 4 characters of the variable 'month'
 dc_data$Year <- substr(dc_data$month, 1, 4)
 va_data$Year <- substr(va_data$month, 1, 4)
 md_data$Year <- substr(md_data$month, 1, 4)
@@ -99,34 +116,41 @@ mean_md_2021 <- mean(md_data_2021$ZHVI, na.rm = TRUE)
 mean_md_2022 <- mean(md_data_2022$ZHVI, na.rm = TRUE)
 mean_md_2023 <- mean(md_data_2023$ZHVI, na.rm = TRUE)
 ```
-We can see the average home value from 2021-2023 was the largest in DC (650863), Maryland(420935) and then Virginia(420935)
 
 
-```{r}
-#Comparing values from the previous chunk
+# Step 5
+
+**Finding the average ZHVI of each reagion for each given year**
+```{r Chunk 5}
+#Comparing values from chunk four
 options(scipen = 999)
 
+#Average ZHVI of DC for years 2021-2023
 mean_dc_2021
 mean_dc_2022
 mean_dc_2023
 
+#Average ZHVI of VA for years 2021-2023
 mean_va_2021
 mean_va_2022
 mean_va_2023
 
+#Average ZHVI of MD for years 2021-2023
 mean_md_2021
 mean_md_2022
 mean_md_2023
 ```
 
-From this we observe the average housing price in DC weren't always increasing it went from 643,242 in 2021 to 662,298 in 2022 and then back down to 647,048 in 2023
+From this we observe the average housing price in DC wasn't always increasing it went from 643,242 in 2021 to 662,298 in 2022 and then back down to 647,048 in 2023
 
 Virginia however, was always increasing. Going from 293,828 to 319,719 in 2022 and 328,925 in 2023
 
 Maryland is the same with housing going from 400,198 to 426,621 and 434,221 in 2023.
 
+# Step 6
 
-```{r}
+**Plotting the data from chunk 4 and 5**
+```{r Chunk 6}
 
 #Plotting ZHVI for each region by year
 library(ggplot2)
@@ -143,14 +167,16 @@ ggplot(combined_data, aes(x = substr(month, 1, 4), y = ZHVI, fill = State)) +
     fill = "State/Region"
   ) +
   scale_y_continuous(
-    breaks = seq(200000, 650000, by = 100000)  
+    breaks = seq(200000, 650000, by = 100000)  #Making the scale smaller than the default
   )
 ```
 
 
-
-```{r}
+# Step 7
+**First statistical testing on the ZHVI of the three regions from 2021-2023 as a whole**
+```{r Chunk 7}
 # statistical testing
+
 
 anova_result <- aov(ZHVI ~ State, data = combined_data)
 summary(anova_result)
@@ -160,9 +186,12 @@ tukey_result
 ```
 With a p-value below 0.05 we can reject the null hypothesis that the means of the ZHVI for the three regions/states are equal. After doing a post-hoc test, we can see the average housing price in Maryland is 229,928 less than DC. Housing price in VA is 336,518 less than DC. And VA is 106,590 cheaper than MD. There are statistically significant differences in ZHVI between all of the regions.
 
-```{r}
-#more statistical testing 
+# Step 8
 
+**Statistical testing on the ZHVI of each region for each given year
+```{r Chunk 8}
+
+#Creating sets of data for each given year within the range of 2021-2023
 all_2021 <- rbind(dc_data_2021, va_data_2021, md_data_2021)
 
 all_2022 <- rbind(dc_data_2022, va_data_2022, md_data_2022)
@@ -170,22 +199,27 @@ all_2022 <- rbind(dc_data_2022, va_data_2022, md_data_2022)
 all_2023 <- rbind(dc_data_2023, va_data_2023, md_data_2023)
 
 
+#Anova test for the year 2021
 anova_2021 <- aov(ZHVI ~ State, data = all_2021)
 summary(anova_2021)
 
+#Anova test for the year 2022
 anova_2022 <- aov(ZHVI ~ State, data = all_2022)
 summary(anova_2022)
 
+#Anova test for the year 2023
 anova_2023 <- aov(ZHVI ~ State, data = all_2023)
 summary(anova_2023)
 
-
+#Post HOC test for 2021
 tukey_result2021 <- TukeyHSD(anova_2021)
 tukey_result2021
 
+#Post HOC test for 2022
 tukey_result2022 <- TukeyHSD(anova_2022)
 tukey_result2022
 
+#Post HOC test for 2023
 tukey_result2023 <- TukeyHSD(anova_2023)
 tukey_result2023
 ```
