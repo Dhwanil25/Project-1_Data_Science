@@ -20,20 +20,27 @@ knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 options(scientific=T, digits = 3) 
 ```
 
-# Step 1 
+# Step 1 and 1a
 
 **Loading the csv/data into the RMD file, observing summary statistics and structure.**
 
-```{r Chunk one}
+```{r Chunk one, Yonathan}
 #Chunk one, let's use this for basic EDA, initial understanding of the data
 housing_data <- read.csv("C:/Users/shime/Downloads/zhvi-all-homes_md-va-dc_2021-2023.csv")
+
+
+```
+We know that the dataset comes from Zillow. The most important variable, ZHVI stands for zillow home value index. ZHVI represents home values in the 35th to 65th percentile of a given geographic region. When extracting our raw data, we chose the most specific geographic metric, zip code. ZHVI is determined from a variety of metrics like recent home sales, zillow
+
+
+**Check out some of the information in the dataset**
+```{r Chunk 1a Yonathan}
 str(housing_data)
 summary(housing_data)
-
 ```
 Our dataset has `r nrow(housing_data)` observations
 We've also observed 9 variables, but likely won't be using all of them. 
-We have null values for ZHVI
+We have null values for ZHVI. There are a few other interesting things about the dataset. Including, the minimum ZHVI for all three regions throughout 2021-2023 is just 25,919. The maximum is 2,829,491. 
 
 # Step 2 
 
@@ -44,12 +51,16 @@ We have null values for ZHVI
 
 
 dc_data <- subset(housing_data, State == "DC")
-md_data <- subset(housing_data, State == "MD")
-va_data <- subset(housing_data, State == "VA")
+summary(dc_data)
 
+md_data <- subset(housing_data, State == "MD")
+summary(md_data)
+
+va_data <- subset(housing_data, State == "VA")
+summary(va_data)
 
 ```
-Maryland and Virginia are the only of the three that has NA's with a total of 468 NAs'and 1028 NA's
+Maryland and Virginia are the only of the three that has NA's with a total of 468 NAs'and 1028 NA's. The most expensive home in the dataset is located in Maryland
 
 
 # Step 3
@@ -175,7 +186,7 @@ ggplot(combined_data, aes(x = substr(month, 1, 4), y = ZHVI, fill = State)) +
 # Step 7
 **First statistical testing on the ZHVI of the three regions from 2021-2023 as a whole**
 ```{r Chunk 7}
-# statistical testing
+# statistical testing the average home price for all three states/regions using the combined data
 
 
 anova_result <- aov(ZHVI ~ State, data = combined_data)
@@ -184,14 +195,14 @@ summary(anova_result)
 tukey_result <- TukeyHSD(anova_result)
 tukey_result
 ```
-With a p-value below 0.05 we can reject the null hypothesis that the means of the ZHVI for the three regions/states are equal. After doing a post-hoc test, we can see the average housing price in Maryland is 229,928 less than DC. Housing price in VA is 336,518 less than DC. And VA is 106,590 cheaper than MD. There are statistically significant differences in ZHVI between all of the regions.
+With a p-value below 0.05 we can reject the null hypothesis that the means of the ZHVI for the three regions/states are equal. After doing a post-hoc test, we can see the average housing price(ZHVI) in Maryland is 229,928 less than DC. Housing price in VA is 336,518 less than DC. And VA is 106,590 cheaper than MD. There are statistically significant differences in ZHVI between all of the regions.
 
 # Step 8
 
-**Statistical testing on the ZHVI of each region for each given year
+**Statistical testing on the ZHVI of each region for each given year**
 ```{r Chunk 8}
 
-#Creating sets of data for each given year within the range of 2021-2023
+#Creating sets of data with all regions for each given year within the range of 2021-2023
 all_2021 <- rbind(dc_data_2021, va_data_2021, md_data_2021)
 
 all_2022 <- rbind(dc_data_2022, va_data_2022, md_data_2022)
@@ -233,6 +244,7 @@ For 2023 we observe a 212827 diff between MD-DC homes, 318123 for VA-DC homes, a
 
 All years and regions had p-values below 0.05 so there are significant differences between all the avg housing prices between every region regardless of the year.
 
+
 # Step 9 
 
 **Further statistical testing**
@@ -268,6 +280,3 @@ print(tukey_va)
 The result for maryland confirms that the average ZHVI in the state in the year 2022 was significantly higher than in 2021. The same goes for the average ZHVI in MD from 2023 being significantly higher than 2021. However, the average ZHVI for maryland in 2023 is not signficantly higher than the average ZHVI in 2022. 
 
 For Virginia the average ZHVI in 2022 was significantly higher than in 2021. The average ZHVI in 2023 is significantly higher than in 2021. The average ZHVI in 2023 is also significantly higher than in 2022.
-
-
->>>>>>> Stashed changes
