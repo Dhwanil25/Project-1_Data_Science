@@ -1,53 +1,35 @@
 ---
-title: '"Group 7 Project one EDA file"'
-author: "Yonathan Shimelis"
-date: "2024-10-15"
+title: "Writeup"
 output: html_document
+date: "2024-10-26"
 ---
 
-```{r init, include=F}
-# The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
-# Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
-# Once installed, load the library.
-library(ezids)
-```
-
-
 ```{r setup, include=FALSE}
-# some of common options (and the defaults) are: 
-# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
-knitr::opts_chunk$set(warning = F, results = "markup", message = F)
-options(scientific=T, digits = 3) 
+knitr::opts_chunk$set(echo = TRUE)
 ```
-
-# Step 1 and 1a
-
-**Loading the csv/data into the RMD file, observing summary statistics and structure.**
 
 ```{r Chunk one, Yonathan}
 #Chunk one, let's use this for basic EDA, initial understanding of the data
 housing_data <- read.csv("C:/Users/shime/Downloads/zhvi-all-homes_md-va-dc_2021-2023.csv")
-
-
 ```
-We know that the dataset comes from Zillow. The most important variable, ZHVI stands for zillow home value index. ZHVI represents home values in the 35th to 65th percentile of a given geographic region. When extracting our raw data, we chose the most specific geographic metric, zip code. ZHVI is determined from a variety of metrics like recent home sales, zillow
+
+What do we know about this dataset?
+ What are the limitations of the dataset?
+ How was the information gathered?
+ What analysis has already been completed related to the content in your dataset?
+ How did the research you gathered contribute to your question development?
+ What additional information would be beneficial?
+ How did your question change, if at all, after Exploratory Data Analysis?
+ Based on EDA can you begin to sketch out an answer to your question?
+ References (APA style preferred)
 
 
-**Check out some of the information in the dataset**
-```{r Chunk 1a Yonathan}
-str(housing_data)
-summary(housing_data)
-```
-Our dataset has `r nrow(housing_data)` observations
-We've also observed 9 variables, but likely won't be using all of them. 
-We have null values for ZHVI. There are a few other interesting things about the dataset. Including, the minimum ZHVI for all three regions throughout 2021-2023 is just 25,919. The maximum is 2,829,491. 
-
-# Step 2 
+# Step 2 - Yonathan
 
 **Break down the dataset by regions.**
 
 ```{r Chunk two}
-#Using code we group the ZHVIs for each data together by regions/states, DC, MD, and VA
+#Using code we group the ZHVIs for the data together by the regions/states, DC, MD, and VA
 
 
 dc_data <- subset(housing_data, State == "DC")
@@ -58,12 +40,11 @@ summary(md_data)
 
 va_data <- subset(housing_data, State == "VA")
 summary(va_data)
-
 ```
 Maryland and Virginia are the only of the three that has NA's with a total of 468 NAs'and 1028 NA's. The most expensive home in the dataset is located in Maryland
 
 
-# Step 3
+# Step 3 - Yonathan 
 
 **Finding the average ZHVI of each region over all three years as a whole**
 ```{r Chunk three} 
@@ -195,7 +176,7 @@ summary(anova_result)
 tukey_result <- TukeyHSD(anova_result)
 tukey_result
 ```
-With a p-value below 0.05 we can reject the null hypothesis that the means of the ZHVI for the three regions/states are equal. After doing a post-hoc test, we can see the average housing price(ZHVI) in Maryland is 229,928 less than DC. Housing price in VA is 336,518 less than DC. And VA is 106,590 cheaper than MD. There are statistically significant differences in ZHVI between all of the regions.
+With a p-value below 0.05, we can reject the null hypothesis that the means of the ZHVI for the three regions/states are equal. After doing a post-hoc test, we can see the average housing price(ZHVI) in Maryland is 229,928 less than DC. Housing price in VA is 336,518 less than DC. And VA is 106,590 cheaper than MD. There are statistically significant differences in ZHVI between all of the regions.
 
 # Step 8
 
@@ -244,3 +225,38 @@ For 2023 we observe a 212827 diff between MD-DC homes, 318123 for VA-DC homes, a
 
 All years and regions had p-values below 0.05 so there are significant differences between all the avg housing prices between every region regardless of the year.
 
+# Step 9 
+
+**Further statistical testing**
+
+```{r Chunk 9}
+#ANOVA testing the average ZHVI of a region in one year versus the same region in the other years of the data
+#We decided to take this step on Dr.Morris' recommendation following our first presentation of the data. 
+
+anova_dc_all_years <- aov(ZHVI ~ Year, data = dc_data)
+summary(anova_dc_all_years)
+
+anova_md_all_years <- aov(ZHVI ~ Year, data = md_data)
+summary(anova_md_all_years)
+
+anova_va_all_years <- aov(ZHVI ~ Year, data = va_data)
+summary(anova_va_all_years)
+
+```
+The p-value for DC is above 0.05, meaning there is no significant difference in the average ZHVI of DC between the years 2021,2022, and 2023. 
+
+The p-value for md and va were both below 0.05. This means we reject the null hypothesis and that there is a difference in the average ZHVI of of MD for at least one of the years (2021-2023) compared to the others. This result is the same for VA. 
+
+```{r}
+#Tukey Tests for the p-values below 0.05
+
+tukey_md <- TukeyHSD(anova_md_all_years)
+print(tukey_md)
+  
+tukey_va <- TukeyHSD(anova_va_all_years)
+print(tukey_va)
+
+```
+The result for maryland confirms that the average ZHVI in the state in the year 2022 was significantly higher than in 2021. The same goes for the average ZHVI in MD from 2023 being significantly higher than 2021. However, the average ZHVI for maryland in 2023 is not signficantly higher than the average ZHVI in 2022. 
+
+For Virginia the average ZHVI in 2022 was significantly higher than in 2021. The averge ZHVI in 2023 is significantly higher than in 2021. The average ZHVI in 2023 is also significantly higher than in 2022.
