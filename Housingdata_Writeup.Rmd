@@ -257,6 +257,6 @@ tukey_va <- TukeyHSD(anova_va_all_years)
 print(tukey_va)
 
 ```
-The result for maryland confirms that the average ZHVI in the state in the year 2022 was significantly higher than in 2021. The same goes for the average ZHVI in MD from 2023 being significantly higher than 2021. However, the average ZHVI for maryland in 2023 is not signficantly higher than the average ZHVI in 2022. 
+The result for maryland confirms that the average ZHVI in the state in the year 2022 was significantly higher than in 2021. The same goes for the average ZHVI in MD from 2023 being significantly higher than 2021. However, the average ZHVI for maryland in 2023 is not significantly higher than the average ZHVI in 2022. 
 
 For Virginia the average ZHVI in 2022 was significantly higher than in 2021. The averge ZHVI in 2023 is significantly higher than in 2021. The average ZHVI in 2023 is also significantly higher than in 2022.
