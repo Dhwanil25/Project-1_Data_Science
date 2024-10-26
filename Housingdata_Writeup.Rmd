@@ -1,0 +1,20 @@
+---
+title: "Writeup"
+output: html_document
+date: "2024-10-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+What do we know about this dataset?
+ What are the limitations of the dataset?
+ How was the information gathered?
+ What analysis has already been completed related to the content in your dataset?
+ How did the research you gathered contribute to your question development?
+ What additional information would be beneficial?
+ How did your question change, if at all, after Exploratory Data Analysis?
+ Based on EDA can you begin to sketch out an answer to your question?
+ References (APA style preferred)
