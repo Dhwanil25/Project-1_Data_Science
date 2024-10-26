@@ -1,0 +1,79 @@
+---
+title: "housingedata"
+output: html_document
+date: "2024-10-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+housing <- read.csv("/Users/fardinhafiz/Desktop/housingdata.csv")
+str(housing)
+```
+
+```{r}
+dc_data <- subset(housing, State == "DC")
+md_data <- subset(housing, State == "MD")
+va_data <- subset(housing, State == "VA")
+```
+
+```{r}
+install.packages("ggplot2")
+library(ggplot2)
+```
+
+```{r}
+dc_data$month <- as.Date(dc_data$month)
+ggplot(dc_data, aes(x = month, y = ZHVI)) +
+    geom_line() +
+    labs(title = "Home Value Over Time (DC)", x = "Month", y = "ZHVI (Home Value Index)") +
+    scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+```
+
+```{r}
+md_data$month <- as.Date(md_data$month)
+ggplot(md_data, aes(x = month, y = ZHVI)) +
+    geom_line() +
+    labs(title = "Home Value Over Time (MD)", x = "Month", y = "ZHVI (Home Value Index)") +
+    scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{R}
+va_data$month <- as.Date(va_data$month)
+ggplot(va_data, aes(x = month, y = ZHVI)) +
+    geom_line() +
+    labs(title = "Home Value Over Time (VA)", x = "Month", y = "ZHVI (Home Value Index)") +
+    scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+```
+
+```{r}
+ggplot(dc_data, aes(y=ZHVI)) + 
+  geom_boxplot( colour="black", fill="blue") +
+  labs(title="Boxplot of ZHVI (DC)", x="", y = "ZHVI")+
+  theme(plot.title = element_text(face = "bold"),
+        axis.title.y = element_text(face = "italic"))
+```
+```{r}
+ggplot(md_data, aes(y=ZHVI)) + 
+  geom_boxplot( colour="black", fill="red") +
+  labs(title="Boxplot of ZHVI (MD)", x="", y = "ZHVI")+
+  theme(plot.title = element_text(face = "bold"),
+        axis.title.y = element_text(face = "italic"))
+```
+```{r}
+ggplot(va_data, aes(y=ZHVI)) + 
+  geom_boxplot( colour="black", fill="green") +
+  labs(title="Boxplot of ZHVI (VA)", x="", y = "ZHVI")+
+  theme(plot.title = element_text(face = "bold"),
+        axis.title.y = element_text(face = "italic"))
+
+```
+
+
