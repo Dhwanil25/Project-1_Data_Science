@@ -8,16 +8,24 @@ date: "2024-10-26"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Step 1 -Yonathan
 ```{r Chunk one, Yonathan}
 #Chunk one, let's use this for basic EDA, initial understanding of the data
-housing_data <- read.csv("C:/Users/shime/Downloads/zhvi-all-homes_md-va-dc_2021-2023.csv")
+housing_data <- read.csv("housingdata.csv")
+#Fardin
+str(housing_data)
+summary(housing_data)
 ```
+Our dataset has `r nrow(housing_data)` observations
+We've also observed 9 variables. 
+We have null values for ZHVI. There are a few other interesting things about the dataset. Including, the minimum ZHVI for all three regions throughout 2021-2023 is just 25,919. The maximum is 2,829,491.
+
 
 # Step 2 - Yonathan
 
 **Break down the dataset by regions.**
 
-```{r Chunk two}
+```{r Chunk two, Yonathan}
 #Using code we group the ZHVIs for the data together by the regions/states, DC, MD, and VA
 
 
@@ -30,7 +38,7 @@ summary(md_data)
 va_data <- subset(housing_data, State == "VA")
 summary(va_data)
 ```
-Maryland and Virginia are the only of the three that has NA's with a total of 468 NAs'and 1028 NA's. The most expensive home in the dataset is located in Maryland
+Maryland and Virginia are the only of the three that has NA's with a total of 468 NAs'and 1028 NA's. The most expensive home in the dataset is located in Maryland.
 
 
 # Step 3 - Yonathan 
@@ -53,9 +61,10 @@ mean_md
 
 
 ```
-We can see the average home value from 2021-2023 was the largest in DC (650863), Maryland(420935) and then Virginia(314345)
+We can see the average ZHVI from 2021-2023 was the largest in DC (650863), Maryland(420935) and then Virginia(314345).(Yonathan)
 
-# Step 4  
+
+# Step 4- Yonathan
 
 **Separating the DC, Maryland, and Virginia data by year**
 ```{r Chunk 4}
@@ -99,7 +108,7 @@ mean_md_2023 <- mean(md_data_2023$ZHVI, na.rm = TRUE)
 ```
 
 
-# Step 5
+# Step 5- Yonathan 
 
 **Finding the average ZHVI of each reagion for each given year**
 ```{r Chunk 5}
@@ -122,13 +131,14 @@ mean_md_2022
 mean_md_2023
 ```
 
-From this we observe the average housing price in DC wasn't always increasing it went from 643,242 in 2021 to 662,298 in 2022 and then back down to 647,048 in 2023
+From this we observe the average ZHVI in DC wasn't always increasing it went from 643,242 in 2021 to 662,298 in 2022 and then back down to 647,048 in 2023
 
 Virginia however, was always increasing. Going from 293,828 to 319,719 in 2022 and 328,925 in 2023
 
-Maryland is the same with housing going from 400,198 to 426,621 and 434,221 in 2023.
+Maryland is the same with the average ZHVI going from 400,198 to 426,621 and 434,221 in 2023.
 
-# Step 6
+
+# Step 6- Yonathan
 
 **Plotting the data from chunk 4 and 5**
 ```{r Chunk 6}
@@ -153,7 +163,8 @@ ggplot(combined_data, aes(x = substr(month, 1, 4), y = ZHVI, fill = State)) +
 ```
 
 
-# Step 7
+# Step 7 - Yonathan
+
 **First statistical testing on the ZHVI of the three regions from 2021-2023 as a whole**
 ```{r Chunk 7}
 # statistical testing the average home price for all three states/regions using the combined data
@@ -165,9 +176,10 @@ summary(anova_result)
 tukey_result <- TukeyHSD(anova_result)
 tukey_result
 ```
-With a p-value below 0.05, we can reject the null hypothesis that the means of the ZHVI for the three regions/states are equal. After doing a post-hoc test, we can see the average housing price(ZHVI) in Maryland is 229,928 less than DC. Housing price in VA is 336,518 less than DC. And VA is 106,590 cheaper than MD. There are statistically significant differences in ZHVI between all of the regions.
+With a p-value below 0.05, we can reject the null hypothesis that the means of the ZHVI for the three regions/states are equal. After doing a post-hoc test, we can see the average housing price(ZHVI) in Maryland is 229,928 less than DC. Housing price in VA is 336,518 less than DC. And VA is 106,590 cheaper than MD. There are statistically significant differences in ZHVI between all of the regions. (Yonathan)
 
-# Step 8
+
+# Step 8 - Yonathan
 
 **Statistical testing on the ZHVI of each region for each given year**
 ```{r Chunk 8}
@@ -212,9 +224,10 @@ For 2022 we observe an avg difference of 235,637 between MD-DC homes, 342579 bet
 
 For 2023 we observe a 212827 diff between MD-DC homes, 318123 for VA-DC homes, and 105296 for VA-MD homes. 
 
-All years and regions had p-values below 0.05 so there are significant differences between all the avg housing prices between every region regardless of the year.
+All years and regions had p-values below 0.05 so there are significant differences between all the avg housing prices between every region regardless of the year. (Yonathan)
 
-# Step 9 
+
+# Step 9 - Yonathan
 
 **Further statistical testing**
 
@@ -234,7 +247,12 @@ summary(anova_va_all_years)
 ```
 The p-value for DC is above 0.05, meaning there is no significant difference in the average ZHVI of DC between the years 2021,2022, and 2023. 
 
-The p-value for md and va were both below 0.05. This means we reject the null hypothesis and that there is a difference in the average ZHVI of of MD for at least one of the years (2021-2023) compared to the others. This result is the same for VA. 
+The p-value for md and va were both below 0.05. This means we reject the null hypothesis and that there is a significant difference in the average ZHVI of of MD for at least one of the years (2021-2023) compared to the others. This result is the same for VA. (Yonathan)
+
+
+#Step 10 - Yonathan
+
+**Tukey Test for Maryland and Virginia all years ANOVA test**
 
 ```{r}
 #Tukey Tests for the p-values below 0.05
@@ -246,10 +264,11 @@ tukey_va <- TukeyHSD(anova_va_all_years)
 print(tukey_va)
 
 ```
-The result for maryland confirms that the average ZHVI in the state in the year 2022 was significantly higher than in 2021. The same goes for the average ZHVI in MD from 2023 being significantly higher than 2021. However, the average ZHVI for maryland in 2023 is not significantly higher than the average ZHVI in 2022. 
+The result for Maryland confirms that the average ZHVI in the state in the year 2022 was significantly higher than in 2021. The same goes for the average ZHVI in MD from 2023 being significantly higher than 2021. However, the average ZHVI for Maryland in 2023 is not significantly higher than the average ZHVI in 2022. 
 
 For Virginia the average ZHVI in 2022 was significantly higher than in 2021. The averge ZHVI in 2023 is significantly higher than in 2021. The average ZHVI in 2023 is also significantly higher than in 2022.
 
+<<<<<<< Updated upstream
 # Step 10
 
 **Comparison of ZHVI Across Regions**
@@ -389,16 +408,12 @@ ggplot(data, aes(x = SizeRank, y = ZHVI)) +
 This scatter plot indicates a negative correlation between SizeRank and ZHVI, meaning larger areas generally have lower home values, while smaller ones tend to have higher values.
 
 # Step 3- Fardin
+=======
+#Plotting EDA- Fardin
+>>>>>>> Stashed changes
 ** Perform General EDA on the Data set 
 ```{r}
-housing_data <- read.csv("/Users/fardinhafiz/Desktop/housingdata.csv")
-str(housing)
-```
-
-```{r}
-dc_data <- subset(housing_data, State == "DC")
-md_data <- subset(housing_data, State == "MD")
-va_data <- subset(housing_data, State == "VA")
+str(housing_data)
 ```
 
 ```{r}
@@ -457,7 +472,11 @@ ggplot(va_data, aes(y=ZHVI)) +
 
 ```
 
+<<<<<<< Updated upstream
 # Step 4 
+=======
+#Questions- Fardin
+>>>>>>> Stashed changes
 
 Housing prices have become a focal point of discussion in recent years, particularly in urban areas where 
 affordability has reached critical levels. The D.C., Maryland, and Virginia (DMV) area, known for its diverse 
