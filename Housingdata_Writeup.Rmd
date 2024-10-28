@@ -253,18 +253,17 @@ For Virginia the average ZHVI in 2022 was significantly higher than in 2021. The
 # Step 3- Fardin
 ** Perform General EDA on the Data set 
 ```{r}
-housing <- read.csv("/Users/fardinhafiz/Desktop/housingdata.csv")
+housing_data <- read.csv("/Users/fardinhafiz/Desktop/housingdata.csv")
 str(housing)
 ```
 
 ```{r}
-dc_data <- subset(housing, State == "DC")
-md_data <- subset(housing, State == "MD")
-va_data <- subset(housing, State == "VA")
+dc_data <- subset(housing_data, State == "DC")
+md_data <- subset(housing_data, State == "MD")
+va_data <- subset(housing_data, State == "VA")
 ```
 
 ```{r}
-install.packages("ggplot2")
 library(ggplot2)
 ```
 
@@ -319,9 +318,9 @@ ggplot(va_data, aes(y=ZHVI)) +
         axis.title.y = element_text(face = "italic"))
 
 ```
+
 # Step 4 Questions- Fardin
 What do we know about this dataset?
-
 This dataset is taken from the online housing marketplace Zillow. Zillow is a website that facilitates the sale and purchase
 of real estate nationwide. The exploratory question we aimed to answer was if housing prices were increasing in the 
 D.C, Maryland, and Virginia area (DMV), and we decided that Zillow would be a very useful tool in studying this 
