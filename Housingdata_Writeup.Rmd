@@ -382,9 +382,10 @@ ggplot(data, aes(x = SizeRank, y = ZHVI)) +
   labs(title = "Correlation between SizeRank and ZHVI", x = "SizeRank", y = "ZHVI") +
   theme_minimal()
 
+```
 This scatter plot indicates a negative correlation between SizeRank and ZHVI, meaning larger areas generally have lower home values, while smaller ones tend to have higher values.
 
-
+```
 # Step 3- Fardin
 ** Perform General EDA on the Data set 
 ```{r}
