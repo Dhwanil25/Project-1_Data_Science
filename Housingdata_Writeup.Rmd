@@ -540,10 +540,6 @@ The development of the research project came fairly easy and naturally after doi
 trend would be reflected in the DMV area.
 
 What additional information would be beneficial?
-
-To better understand factors affecting home values in the provided dataset, additional information on property type (e.g., single-family homes, condos), the number of bedrooms, and property size would be beneficial. Including socioeconomic indicators, such as the average income levels of residents in each area, could offer insights into the affordability and demand drivers influencing the Zillow Home Value Index (ZHVI). Other useful data points might include crime rates, school district quality, and proximity to public transportation, as these factors often impact real estate values and demand. Weather/climate information could also provide context, especially for areas where extreme temperatures or natural disaster risks affect home desirability. Expanding the dataset with these variables would allow for a more detailed analysis of the correlations between home values and external factors, leading to a more comprehensive understanding of real estate market trends across different regions.
-
-
 How did your question change, if at all, after Exploratory Data Analysis?
 Based on EDA can you begin to sketch out an answer to your question?
 References (APA style preferred)
