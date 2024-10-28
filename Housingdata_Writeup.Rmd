@@ -289,9 +289,10 @@ ggplot(data_filtered, aes(x = month, y = ZHVI, color = State)) +
   labs(title = "Comparison of ZHVI by State Over Time", x = "Date", y = "ZHVI (Home Values)") +
   theme_minimal()
 
+```
+
 It indicates a positively inclined housing market in the DC, MD and VA regions. While the home values in DC were seen to be consistently high, the other states have also seen significant appreciation in the recent years. 
 
-```
 # Step 11
 
 **ZHVI Over Time**
@@ -342,7 +343,6 @@ ggplot(data[!is.na(data$ZHVI),], aes(x = month, y = ZHVI)) +
 It shows a clear upward trend in the Zillow Home Value Index (ZHVI) over time, indicating a rising housing market. 
 However, there are also periods of fluctuation, suggesting that the market is not entirely stable. 
 
-```
 
 # Step 12
 
@@ -387,8 +387,6 @@ ggplot(data, aes(x = SizeRank, y = ZHVI)) +
 ```
 
 This scatter plot indicates a negative correlation between SizeRank and ZHVI, meaning larger areas generally have lower home values, while smaller ones tend to have higher values.
-
-```
 
 # Step 3- Fardin
 ** Perform General EDA on the Data set 
