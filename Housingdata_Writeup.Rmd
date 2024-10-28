@@ -320,10 +320,14 @@ ggplot(va_data, aes(y=ZHVI)) +
 ```
 
 # Step 4 Questions- Fardin
+
+# remeber to delete questions and unify 
+
 What do we know about this dataset?
+
 This dataset is taken from the online housing marketplace Zillow. Zillow is a website that facilitates the sale and purchase
 of real estate nationwide. The exploratory question we aimed to answer was if housing prices were increasing in the 
-D.C, Maryland, and Virginia area (DMV), and we decided that Zillow would be a very useful tool in studying this 
+D.C., Maryland, and Virginia area (DMV), and we decided that Zillow would be a very useful tool in studying this 
 question. Zillow records all of the purchases and sales made on the website and evaluations of homes on the market
 and this provides us an extensive dataset across multiple years that can be evaluated. By analyzing the changes 
 in home values across multiple years and multiple areas, it allows us to study our research question. The dataset provided
@@ -336,10 +340,26 @@ in order to get an understanding of the general average trend of homes. ZHVI can
 of homes like single-family, co-op, etc but we decided to include all types of homes in our dataset in order to get a full 
 understanding of all types of homes in a specific zipcode. This dataset is updated every year but we decided to use the data 
 from 2021-2023 in order to get a concept of the recent changes in housing prices. ZHVI is also representative of the actual 
-housing sales and is not based on housing trend estimates, so it is more reflective of the actual market. 
+housing sales and is based on a formula provided by Zillow called the Zestimate, so it is more reflective of the actual market. 
 
 
 What are the limitations of the dataset?
+
+Some potential limitations of this dataset should be addressed while using it. Since this dataset is provided by the popular 
+website Zillow, it is based on the evaluation of homes listed and sold on Zillow. This tends to narrow the properties and 
+data to those that are on Zillow. Even though Zillow does provide a good reflection of the market and landscape as a 
+whole, not having the information from other sites and local real estate brokerages can be considered a limitation.
+There may be certain types of homes or types of people that list homes on Zillow, which may make the entire estimate 
+not completely reflective of the total housing market. The data and ZHVI values are also based on a formula provided
+by Zillow called the Zestimate. Although this Zestimate is a well-formulated algorithm, it may provide some limitations 
+since an estimate is not always reflective of the actual value. Another potential limitation is the NA values that are
+present in the dataset, which reflect values that are not available on the website. This makes it harder to evaluate 
+some zip codes where the values are NA in later years. These limitations were mediated by having the values taken 
+over a longer period of time so one NA would not be detrimental to the study of the trend. One way to remedy these 
+limitation would be take different sources of data on housing data and have a comparable value between them in order 
+to get data from multiple sources on housing data trends. 
+
+
 How was the information gathered?
 What analysis has already been completed related to the content in your dataset?
 How did the research you gathered contribute to your question development?
