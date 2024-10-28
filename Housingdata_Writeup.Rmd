@@ -348,13 +348,12 @@ ggplot(housing_data, aes(x = SizeRank, y = ZHVI)) +
 
 ```
 
-This scatter plot indicates a negative correlation between SizeRank and ZHVI, meaning larger areas generally have lower home values, while smaller ones tend to have higher values.
+This scatter plot indicates a negative correlation between SizeRank and ZHVI. SizeRank ranks zip codes by the average home value in a zip code related to other zip codes. So as the value for SizeRank increases, the average home value will decrease as shown in the plot. A lower SizeRank will mean a higher ZHVI. (negative correlation). 
 
-# Step 3- Fardin
-=======
+
 #Plotting EDA- Fardin
->>>>>>> Stashed changes
-** Perform General EDA on the Data set 
+
+**Perform General EDA on the Data set**
 ```{r}
 str(housing_data)
 ```
