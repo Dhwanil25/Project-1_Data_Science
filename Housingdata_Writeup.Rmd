@@ -549,6 +549,9 @@ After conducting Exploratory Data Analysis (EDA), our research question evolved 
 
 
 Based on EDA can you begin to sketch out an answer to your question?
+
+Based on exploratory data analysis (EDA), it appears that housing prices in the D.C., Maryland, and Virginia (DMV) area are trending upward from 2021 to 2023. The Zillow Home Value Index (ZHVI) suggests a consistent increase in home values across various zip codes, particularly within the 35th to 65th percentiles. However, the limitations of using Zillow’s data, such as reliance on properties listed on their platform and potential discrepancies in the Zestimate, indicate that while the data provides valuable insights, it may not fully represent the broader market dynamics. Factors like income levels, property characteristics, and local economic conditions could further elucidate the housing market trends in the DMV area. Addressing these variables through additional research could enhance the understanding of housing price fluctuations and affordability challenges in this region.
+
 References (APA style preferred)
 
 
