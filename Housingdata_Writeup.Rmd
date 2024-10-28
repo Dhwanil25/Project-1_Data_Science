@@ -268,39 +268,24 @@ The result for Maryland confirms that the average ZHVI in the state in the year 
 
 For Virginia the average ZHVI in 2022 was significantly higher than in 2021. The averge ZHVI in 2023 is significantly higher than in 2021. The average ZHVI in 2023 is also significantly higher than in 2022.
 
-<<<<<<< Updated upstream
 # Step 10
 
 **Comparison of ZHVI Across Regions**
 
 ```{r Chunk 10}
----
-title: "Comparison of ZHVI Across Regions"
-author: "Sagar Shah"
-date: "2024-10-21"
-output:
-  html_document:
-    toc: yes
-    toc_depth: 2
----
-  
-  ```{r}
 # Load necessary libraries
 library(ggplot2)
 library(dplyr)
 
-# 1. Load the dataset
-data <- read.csv("/Users/sagarshah/Documents/Introduction To Data Science /zhvi-all-homes_md-va-dc_2021-2023.csv")
-
 # Convert 'month' to date format
-data$month <- as.Date(data$month, format="%Y-%m-%d")
+housing_data$month <- as.Date(housing_data$month, format="%Y-%m-%d")
 
 # Check for missing ZHVI values
-missing_data <- sum(is.na(data$ZHVI))
+missing_data <- sum(is.na(housing_data$ZHVI))
 cat("Missing ZHVI values: ", missing_data, "\n")
 
 # 2. Filter data to include only non-missing ZHVI values
-data_filtered <- data[!is.na(data$ZHVI), ]
+data_filtered <- housing_data[!is.na(housing_data$ZHVI), ]
 
 # 3. Compare ZHVI by State over Time
 ggplot(data_filtered, aes(x = month, y = ZHVI, color = State)) +
@@ -317,42 +302,26 @@ It indicates a positively inclined housing market in the DC, MD and VA regions. 
 **ZHVI Over Time**
 
 ```{r Chunk 11}
----
-title: "ZHVI Over Time"
-author: "Sagar Shah"
-date: "2024-10-21"
-output:
-  html_document:
-    toc: yes
-    toc_depth: 2
----
 
-```{r}
 # Load necessary libraries
 library(ggplot2)
 library(dplyr)
 
-# 1. Load the dataset
-data <- read.csv("~/Documents/Introduction To Data Science /zhvi-all-homes_md-va-dc_2021-2023.csv")
-
-# 2. Convert 'month' to date format
-data$month <- as.Date(data$month, format="%Y-%m-%d")
-
 # 3. Summary statistics of ZHVI
-summary(data$ZHVI)
+summary(housing_data$ZHVI)
 
 # 4. Missing data visualization
-missing_data <- colSums(is.na(data))
+missing_data <- colSums(is.na(housing_data))
 print(missing_data)
 
 # 5. Distribution of ZHVI
-ggplot(data, aes(x = ZHVI)) +
+ggplot(housing_data, aes(x = ZHVI)) +
   geom_histogram(bins = 50, fill = "blue", color = "black") +
   labs(title = "Distribution of ZHVI", x = "ZHVI (Home Values)", y = "Frequency") +
   theme_minimal()
 
 # 6. Time series plot of ZHVI over time (filtered to remove NAs)
-ggplot(data[!is.na(data$ZHVI),], aes(x = month, y = ZHVI)) +
+ggplot(housing_data[!is.na(housing_data$ZHVI),], aes(x = month, y = ZHVI)) +
   geom_line(color = "blue", alpha = 0.6) +
   labs(title = "ZHVI Over Time", x = "Date", y = "ZHVI (Home Values)") +
   theme_minimal()
@@ -368,36 +337,10 @@ However, there are also periods of fluctuation, suggesting that the market is no
 **Correlation between SizeRank and ZHVI**
 
 ```{r Chunk 12}
----
-title: "Correlation between SizeRank and ZHVI"
-author: "Sagar Shah"
-date: "2024-10-21"
-output:
-  html_document:
-    toc: yes
-    toc_depth: 2
----
 
-```{r}
-# Load necessary libraries
-library(ggplot2)
-library(dplyr)
-
-# 1. Load the dataset
-data <- read.csv("~/Documents/Introduction To Data Science /zhvi-all-homes_md-va-dc_2021-2023.csv")
-
-# 2. Convert 'month' to date format
-data$month <- as.Date(data$month, format="%Y-%m-%d")
-
-# 3. Summary statistics of ZHVI
-summary(data$ZHVI)
-
-# 4. Missing data visualization
-missing_data <- colSums(is.na(data))
-print(missing_data)
 
 # 5. Correlation between ZHVI and SizeRank
-ggplot(data, aes(x = SizeRank, y = ZHVI)) +
+ggplot(housing_data, aes(x = SizeRank, y = ZHVI)) +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm", color = "red") +
   labs(title = "Correlation between SizeRank and ZHVI", x = "SizeRank", y = "ZHVI") +
@@ -471,12 +414,7 @@ ggplot(va_data, aes(y=ZHVI)) +
         axis.title.y = element_text(face = "italic"))
 
 ```
-
-<<<<<<< Updated upstream
-# Step 4 
-=======
 #Questions- Fardin
->>>>>>> Stashed changes
 
 Housing prices have become a focal point of discussion in recent years, particularly in urban areas where 
 affordability has reached critical levels. The D.C., Maryland, and Virginia (DMV) area, known for its diverse 
