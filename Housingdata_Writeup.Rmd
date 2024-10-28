@@ -458,10 +458,19 @@ ggplot(va_data, aes(y=ZHVI)) +
 ```
 
 # Step 4 Questions- Fardin
+Housing prices have become a focal point of discussion in recent years, particularly in urban areas where 
+affordability has reached critical levels. The D.C., Maryland, and Virginia (DMV) area, known for its diverse 
+population and significant economic activity, exemplifies this trend. This project investigates the increasing 
+housing prices in the DMV area, utilizing a dataset sourced from Zillow, a prominent online real estate marketplace. 
+Our primary research question seeks to determine whether housing prices are rising in this region and what 
+implications these trends hold for various demographics.
 
-# remeber to delete questions and unify 
-
-What do we know about this dataset?
+Zillow aggregates extensive real estate data, making it a valuable resource for analyzing housing trends across 
+different regions. By focusing on the Zillow Home Value Index (ZHVI), which represents the market value of homes, 
+we aim to uncover patterns in housing prices over recent years. This summary outlines the dataset’s characteristics, 
+acknowledges its limitations, describes the data-gathering methods, reviews previous analyses, and details the 
+exploratory data analysis (EDA) process. Additionally, it discusses how EDA influenced our research question and 
+presents initial findings on housing price trends in the DMV area.
 
 This dataset is taken from the online housing marketplace Zillow. Zillow is a website that facilitates the sale and purchase
 of real estate nationwide. The exploratory question we aimed to answer was if housing prices were increasing in the 
@@ -480,9 +489,6 @@ understanding of all types of homes in a specific zipcode. This dataset is updat
 from 2021-2023 in order to get a concept of the recent changes in housing prices. ZHVI is also representative of the actual 
 housing sales and is based on a formula provided by Zillow called the Zestimate, so it is more reflective of the actual market. 
 
-
-What are the limitations of the dataset?
-
 Some potential limitations of this dataset should be addressed while using it. Since this dataset is provided by the popular 
 website Zillow, it is based on the evaluation of homes listed and sold on Zillow. This tends to narrow the properties and 
 data to those that are on Zillow. Even though Zillow does provide a good reflection of the market and landscape as a 
@@ -497,9 +503,6 @@ over a longer period of time so one NA would not be detrimental to the study of 
 would be to take different sources of data on housing data and have a comparable value between them in order 
 to get data from multiple sources on housing data trends. 
 
-
-How was the information gathered?
-
 The information was gathered through the use of the website Zillow. When we decided we wanted to explore the question of 
 increasing housing trends, we thought that Zillow would be very useful since it congregates housing data on the 
 website and this allows for easy analysis since this is the exact type of data that we were looking for. The most important 
@@ -509,9 +512,6 @@ website the ZHVI values are optimized to achieve three main objectives, timeline
 Zillow aims to have ZHVI value readily accessible and have them be very reflective of the state of the market. Since this
 data is just an aggregation of data, and there is no real form of data curation, it eliminates many different types of human 
 error that potentially be a problem with other datasets.
-
-
-What analysis has already been completed related to the content in your dataset?
 
 The topic of increasing housing prices has been a hot topic for many years due to its importance for the average American.
 There have already been studies that have been conducted on similar topics of housing prices but we decided to study 
@@ -526,8 +526,6 @@ at an all-time low at a value of about 70, in comparison to the value in 2013 wh
 the current upward trends and an increasing inability for people to afford homes, it would be impactful to have our 
 research question be based on this phenomenon. 
 
-How did the research you gathered contribute to your question development?
-
 The research we conducted on the housing price increase in the United States led us to start thinking about how this trend 
 would look in the DMV area. Another contributing factor in our area of study was the relevance housing prices have on our
 current political landscape. Due to the upcoming election, there has been a lot of discourse on how housing prices are
@@ -539,8 +537,6 @@ from throughout the United States. This was pivotal as we didn't have to sort th
 The development of the research project came fairly easily and naturally after doing the research and becoming interested on how the
 the trend would be reflected in the DMV area.
 
-What additional information would be beneficial?
-
 To better understand factors affecting home values in the provided dataset, additional information on property type (e.g., single-family homes, 
 condos), the number of bedrooms, and property size would be beneficial. Including socioeconomic indicators, such as the average income levels 
 of residents in each area, could offer insights into the affordability and demand drivers influencing the Zillow Home Value Index (ZHVI). Other 
@@ -549,8 +545,6 @@ real estate values and demand. Weather/climate information could also provide co
 natural disaster risks affect home desirability. Expanding the dataset with these variables would allow for a more detailed analysis of the 
 correlations between home values and external factors, leading to a more comprehensive understanding of real estate market trends across 
 different regions.
-
-How did your question change, if at all, after Exploratory Data Analysis?
 
 After conducting Exploratory Data Analysis (EDA), our research question evolved to focus more specifically on the affordability of housing in 
 the DMV area, influenced by rising trends in home values. Initial investigations revealed significant discrepancies in home prices across 
@@ -561,8 +555,6 @@ the importance of examining external factors like interest rates and economic po
 EDA underscored the necessity of integrating additional variables like income levels and property characteristics for a more comprehensive 
 analysis. This shift allowed us to develop a more nuanced understanding of the housing market in the DMV area.
 
-Based on EDA can you begin to sketch out an answer to your question?
-
 Based on exploratory data analysis (EDA), it appears that housing prices in the D.C., Maryland, and Virginia (DMV) areas are trending upward
 from 2021 to 2023. The Zillow Home Value Index (ZHVI) suggests a consistent increase in home values across various zip codes, particularly 
 within the 35th to 65th percentiles. However, the limitations of using Zillow’s data, such as reliance on properties listed on their platform 
@@ -570,6 +562,23 @@ and potential discrepancies in the Zestimate, indicate that while the data provi
 market dynamics. Factors like income levels, property characteristics, and local economic conditions could further elucidate the housing market 
 trends in the DMV area. Addressing these variables through additional research could enhance the understanding of housing price fluctuations 
 and affordability challenges in this region.
+
+In conclusion, this exploratory data analysis of housing prices in the D.C., Maryland, and Virginia (DMV) 
+area reveals significant upward trends in home values over the past few years. The dataset sourced from Zillow 
+highlights the complexities of the housing market and underscores the need for localized analysis to understand 
+the diverse factors influencing affordability and access to housing.
+
+While the ZHVI data indicates a general rise in housing prices, it also points to considerable variability across 
+different zip codes, suggesting that not all areas are experiencing these changes uniformly. The findings align 
+with broader national trends, yet they also highlight the unique characteristics of the DMV market, influenced by 
+local economic conditions and demographic shifts.
+
+Moving forward, our research will continue to refine the analysis by incorporating additional socio-economic 
+variables and examining the impacts of rising housing prices on various demographics. Understanding these dynamics 
+is crucial for informing policy discussions and addressing the growing concerns surrounding housing affordability in 
+the DMV area. By delving deeper into the underlying factors driving these trends, we aim to contribute valuable insights 
+that can support effective solutions for the region’s housing challenges.
+
 
 References (APA style preferred)
 
