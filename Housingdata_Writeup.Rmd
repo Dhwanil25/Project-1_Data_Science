@@ -545,12 +545,7 @@ To better understand factors affecting home values in the provided dataset, addi
 
 
 How did your question change, if at all, after Exploratory Data Analysis?
-
-After performing Exploratory Data Analysis (EDA) on the dataset, the research question shifted to consider the handling and implications of missing data in key columns, specifically ZHVI, City, and Metro. Initially, the focus was on understanding broad market trends, but EDA revealed the need to address missing values for more accurate analysis. Understanding the distribution of ZHVI across different states and cities became a priority, particularly in regions with sparse data, to ensure that conclusions drawn reflect actual market conditions. Additionally, EDA highlighted a potential focus on trends over time and seasonal fluctuations in home values, which could be more accurately interpreted with complete data. The analysis approach now emphasizes data cleaning and transformation processes to mitigate the impact of missing information, enabling a clearer examination of how geographic and socioeconomic factors influence home values.
-
 Based on EDA can you begin to sketch out an answer to your question?
-
-
 References (APA style preferred)
 
 
