@@ -320,13 +320,34 @@ ggplot(va_data, aes(y=ZHVI)) +
 
 ```
 # Step 4 Questions- Fardin
-  What do we know about this dataset?
- What are the limitations of the dataset?
- How was the information gathered?
- What analysis has already been completed related to the content in your dataset?
- How did the research you gathered contribute to your question development?
- What additional information would be beneficial?
- How did your question change, if at all, after Exploratory Data Analysis?
- Based on EDA can you begin to sketch out an answer to your question?
- References (APA style preferred)
+What do we know about this dataset?
+
+This dataset is taken from the online housing marketplace Zillow. Zillow is a website that facilitates the sale and purchase
+of real estate nationwide. The exploratory question we aimed to answer was if housing prices were increasing in the 
+D.C, Maryland, and Virginia area (DMV), and we decided that Zillow would be a very useful tool in studying this 
+question. Zillow records all of the purchases and sales made on the website and evaluations of homes on the market
+and this provides us an extensive dataset across multiple years that can be evaluated. By analyzing the changes 
+in home values across multiple years and multiple areas, it allows us to study our research question. The dataset provided
+a lot of valuable information about the areas of interest. The dataset was directly provided by Zillow and is publicly 
+available for download. The dataset aims to study the idea of home value by breaking down the evaluation of property into 
+zip codes. The dataset takes into account all of the properties and different types of properties in the area and 
+provides a ZHVI value (Zillow Home Value Index). This ZHVI value is a measure of the home value of different homes 
+in different percentiles of home price. We decided to use the ZHVI that measures between the 35th and 65th percentile
+in order to get an understanding of the general average trend of homes. ZHVI can also be specific to different types 
+of homes like single-family, co-op, etc but we decided to include all types of homes in our dataset in order to get a full 
+understanding of all types of homes in a specific zipcode. This dataset is updated every year but we decided to use the data 
+from 2021-2023 in order to get a concept of the recent changes in housing prices. ZHVI is also representative of the actual 
+housing sales and is not based on housing trend estimates, so it is more reflective of the actual market. 
+
+
+What are the limitations of the dataset?
+How was the information gathered?
+What analysis has already been completed related to the content in your dataset?
+How did the research you gathered contribute to your question development?
+What additional information would be beneficial?
+How did your question change, if at all, after Exploratory Data Analysis?
+Based on EDA can you begin to sketch out an answer to your question?
+References (APA style preferred)
+
+
 
