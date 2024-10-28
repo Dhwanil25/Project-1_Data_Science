@@ -10,7 +10,7 @@ date: "2024-10-26"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Step 1 -Yonathan
+# Step 1
 ```{r Chunk one, Yonathan}
 #Chunk one, let's use this for basic EDA, initial understanding of the data
 housing_data <- read.csv("housingdata.csv")
@@ -19,11 +19,10 @@ str(housing_data)
 summary(housing_data)
 ```
 Our dataset has `r nrow(housing_data)` observations
-We've also observed 9 variables. 
-We have null values for ZHVI. There are a few other interesting things about the dataset. Including, the minimum ZHVI for all three regions throughout 2021-2023 is just 25,919. The maximum is 2,829,491.
+We've also observed 9 variables. The most important variable is ZHVI which stands for Zillow Home Value Index. We have null values for ZHVI. There are a few other interesting things about the dataset. Including, the minimum ZHVI for all three regions throughout 2021-2023 is just 25,919. The maximum is 2,829,491.
 
 
-# Step 2 - Yonathan
+# Step 2
 
 **Break down the dataset by regions.**
 
@@ -43,7 +42,7 @@ summary(va_data)
 Maryland and Virginia are the only of the three that has NA's with a total of 468 NAs'and 1028 NA's. The most expensive home in the dataset is located in Maryland.
 
 
-# Step 3 - Yonathan 
+# Step 3 
 
 **Finding the average ZHVI of each region over all three years as a whole**
 ```{r Chunk three} 
@@ -66,7 +65,7 @@ mean_md
 We can see the average ZHVI from 2021-2023 was the largest in DC (650863), Maryland(420935) and then Virginia(314345).(Yonathan)
 
 
-# Step 4- Yonathan
+# Step 4
 
 **Separating the DC, Maryland, and Virginia data by year**
 ```{r Chunk 4}
@@ -110,7 +109,7 @@ mean_md_2023 <- mean(md_data_2023$ZHVI, na.rm = TRUE)
 ```
 
 
-# Step 5- Yonathan 
+# Step 5 
 
 **Finding the average ZHVI of each reagion for each given year**
 ```{r Chunk 5}
@@ -140,7 +139,7 @@ Virginia however, was always increasing. Going from 293,828 to 319,719 in 2022 a
 Maryland is the same with the average ZHVI going from 400,198 to 426,621 and 434,221 in 2023.
 
 
-# Step 6- Yonathan
+# Step 6
 
 **Plotting the data from chunk 4 and 5**
 ```{r Chunk 6}
@@ -165,7 +164,7 @@ ggplot(combined_data, aes(x = substr(month, 1, 4), y = ZHVI, fill = State)) +
 ```
 
 
-# Step 7 - Yonathan
+# Step 7
 
 **First statistical testing on the ZHVI of the three regions from 2021-2023 as a whole**
 ```{r Chunk 7}
@@ -181,7 +180,7 @@ tukey_result
 With a p-value below 0.05, we can reject the null hypothesis that the means of the ZHVI for the three regions/states are equal. After doing a post-hoc test, we can see the average housing price(ZHVI) in Maryland is 229,928 less than DC. Housing price in VA is 336,518 less than DC. And VA is 106,590 cheaper than MD. There are statistically significant differences in ZHVI between all of the regions. (Yonathan)
 
 
-# Step 8 - Yonathan
+# Step 8
 
 **Statistical testing on the ZHVI of each region for each given year**
 ```{r Chunk 8}
@@ -229,7 +228,7 @@ For 2023 we observe a 212827 diff between MD-DC homes, 318123 for VA-DC homes, a
 All years and regions had p-values below 0.05 so there are significant differences between all the avg housing prices between every region regardless of the year. (Yonathan)
 
 
-# Step 9 - Yonathan
+# Step 9
 
 **Further statistical testing**
 
@@ -252,7 +251,7 @@ The p-value for DC is above 0.05, meaning there is no significant difference in 
 The p-value for md and va were both below 0.05. This means we reject the null hypothesis and that there is a significant difference in the average ZHVI of of MD for at least one of the years (2021-2023) compared to the others. This result is the same for VA. (Yonathan)
 
 
-#Step 10 - Yonathan
+#Step 10
 
 **Tukey Test for Maryland and Virginia all years ANOVA test**
 
@@ -270,7 +269,7 @@ The result for Maryland confirms that the average ZHVI in the state in the year 
 
 For Virginia the average ZHVI in 2022 was significantly higher than in 2021. The averge ZHVI in 2023 is significantly higher than in 2021. The average ZHVI in 2023 is also significantly higher than in 2022.
 
-# Step 10
+# Step 11
 
 **Comparison of ZHVI Across Regions**
 
@@ -299,7 +298,7 @@ ggplot(data_filtered, aes(x = month, y = ZHVI, color = State)) +
 
 It indicates a positively inclined housing market in the DC, MD and VA regions. While the home values in DC were seen to be consistently high, the other states have also seen significant appreciation in the recent years. 
 
-# Step 11
+# Step 12
 
 **ZHVI Over Time**
 
@@ -334,7 +333,7 @@ It shows a clear upward trend in the Zillow Home Value Index (ZHVI) over time, i
 However, there are also periods of fluctuation, suggesting that the market is not entirely stable. 
 
 
-# Step 12
+# Step 13
 
 **Correlation between SizeRank and ZHVI**
 
