@@ -355,12 +355,24 @@ by Zillow called the Zestimate. Although this Zestimate is a well-formulated alg
 since an estimate is not always reflective of the actual value. Another potential limitation is the NA values that are
 present in the dataset, which reflect values that are not available on the website. This makes it harder to evaluate 
 some zip codes where the values are NA in later years. These limitations were mediated by having the values taken 
-over a longer period of time so one NA would not be detrimental to the study of the trend. One way to remedy these 
-limitation would be take different sources of data on housing data and have a comparable value between them in order 
+over a longer period of time so one NA would not be detrimental to the study of the trend. One way to remedy these limitations
+would be to take different sources of data on housing data and have a comparable value between them in order 
 to get data from multiple sources on housing data trends. 
 
 
 How was the information gathered?
+
+The information was gathered through the use of the website Zillow. When we decided we wanted to explore the question of 
+increasing housing trends, we thought that Zillow would be very useful since it congregates housing data on the 
+website and this allows for easy analysis since this is the exact type of data that we were looking for. The most important 
+value from the dataset for the study was the previously mentioned ZHVI value. The ZHVI is gathered by taking a general 
+evaluation of all of the properties in an area not just the ones that have been sold. As stated on the Zillow 
+website the ZHVI values are optimized to achieve three main objectives, timeliness, comprehensiveness, and visibility.
+Zillow aims to have ZHVI value readily accessible and have them be very reflective of the state of the market. Since this
+data is just an aggregation of data, and there is no real form data curation, it eliminates many different types of human 
+error that potentially be a problem with other datasets.
+
+
 What analysis has already been completed related to the content in your dataset?
 How did the research you gathered contribute to your question development?
 What additional information would be beneficial?
