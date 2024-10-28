@@ -1,5 +1,6 @@
 ---
-title: "Writeup"
+title: "Home Value/Housing Prices in the DMV area from 2021-2023 analysis and report"
+author: "Team 7"
 output:
   html_document:
     code_folding: hide
@@ -219,9 +220,9 @@ tukey_result2023
 ```
 Every year has a p-value below 0.05. 
 
-We observe a 243,045 difference in DC-MD homes, a 349414 difference in VA-DC homes, and a 106369 difference in VA-MD homes for the year 2021. 
+We observe a difference of 243,045 in average ZHVI of DC-MD homes, an average ZHVI difference of 349414 in VA-DC homes, and a difference of 106369 in average ZHVI of VA-MD homes for the year 2021. 
 
-For 2022 we observe an avg difference of 235,637 between MD-DC homes, 342579 between VA-DC homes, and 106942 between VA-MD homes.
+For 2022 we observe a difference of 235,637 in average ZHVI between MD-DC homes, 342579 between VA-DC homes, and 106942 between VA-MD homes.
 
 For 2023 we observe a 212827 diff between MD-DC homes, 318123 for VA-DC homes, and 105296 for VA-MD homes. 
 
@@ -414,14 +415,14 @@ ggplot(va_data, aes(y=ZHVI)) +
         axis.title.y = element_text(face = "italic"))
 
 ```
+
 #Questions- Fardin
 
 Housing prices have become a focal point of discussion in recent years, particularly in urban areas where 
 affordability has reached critical levels. The D.C., Maryland, and Virginia (DMV) area, known for its diverse 
 population and significant economic activity, exemplifies this trend. This project investigates the increasing 
 housing prices in the DMV area, utilizing a dataset sourced from Zillow, a prominent online real estate marketplace. 
-Our primary research question seeks to determine whether housing prices are rising in this region and what 
-implications these trends hold for various demographics.
+Our primary research question seeks to determine whether or not housing prices are rising in this region and how the housing prices of these regions compare against each other over time. 
 
 Zillow aggregates extensive real estate data, making it a valuable resource for analyzing housing trends across 
 different regions. By focusing on the Zillow Home Value Index (ZHVI), which represents the market value of homes, 
@@ -466,7 +467,7 @@ provides a ZHVI value (Zillow Home Value Index). This ZHVI value is a measure of
 in different percentiles of home price. We decided to use the ZHVI that measures between the 35th and 65th percentile
 in order to get an understanding of the general average trend of homes. ZHVI can also be specific to different types 
 of homes like single-family, co-op, etc but we decided to include all types of homes in our dataset in order to get a full 
-understanding of all types of homes in a specific zipcode. This dataset is updated every year but we decided to use the data 
+understanding of all types of homes in a specific zipcode. This dataset is updated every month but we decided to use the data 
 from 2021-2023 in order to get a concept of the recent changes in housing prices. ZHVI is also representative of the actual 
 housing sales and is based on a formula provided by Zillow called the Zestimate, so it is more reflective of the actual market. 
 
@@ -484,10 +485,7 @@ over a longer period of time so one NA would not be detrimental to the study of 
 would be to take different sources of data on housing data and have a comparable value between them in order 
 to get data from multiple sources on housing data trends. 
 
-The information was gathered through the use of the website Zillow. When we decided we wanted to explore the question of 
-increasing housing trends, we thought that Zillow would be very useful since it congregates housing data on the 
-website and this allows for easy analysis since this is the exact type of data that we were looking for. The most important 
-value from the dataset for the study was the previously mentioned ZHVI value. The ZHVI is gathered by taking a general 
+The ZHVI is gathered by taking a general 
 evaluation of all of the properties in an area not just the ones that have been sold. As stated on the Zillow 
 website the ZHVI values are optimized to achieve three main objectives, timeliness, comprehensiveness, and visibility.
 Zillow aims to have ZHVI value readily accessible and have them be very reflective of the state of the market. Since this
@@ -507,30 +505,19 @@ After conducting Exploratory Data Analysis (EDA), our research question evolved 
 of housing in the DMV area, influenced by rising trends in home values. Initial investigations revealed significant discrepancies 
 in home prices across different zip codes, prompting us to consider socio-economic factors that may impact affordability. The ZHVI data 
 illustrated clear trends but also highlighted areas with considerable variability. This led us to refine our question to not only 
-address price increases but also investigate how these changes affect different demographics and the overall housing market dynamics 
-in the region. Additionally, we recognized the importance of examining external factors like interest rates and economic policies 
-that could further influence housing trends. Ultimately, EDA underscored the necessity of integrating additional variables
-like income levels and property characteristics for a more comprehensive analysis. This shift allowed us to develop a more nuanced 
+address price increases but also investigate how these changes affect the overall housing market dynamics in the region. Additionally, we recognized the importance of examining external factors like interest rates and economic policies that could further influence housing trends. Ultimately, EDA underscored the necessity of integrating additional variables like income levels and property characteristics for a more comprehensive analysis. This shift allowed us to develop a more nuanced 
 understanding of the housing market in the DMV area.
 
-Based on exploratory data analysis (EDA), it appears that housing prices in the D.C., Maryland, and Virginia (DMV) areas are 
-trending upwardfrom 2021 to 2023. The Zillow Home Value Index (ZHVI) suggests a consistent increase in home values across 
-various zip codes, particularly within the 35th to 65th percentiles. However, the limitations of using Zillow’s data, 
-such as reliance on properties listed on their platform and potential discrepancies in the Zestimate, indicate that 
-while the data provides valuable insights, it may not fully represent the broader market dynamics. Factors like income 
-levels, property characteristics, and local economic conditions could further elucidate the housing market 
-trends in the DMV area. Addressing these variables through additional research could enhance the understanding of housing 
+Based on exploratory data analysis (EDA), it appears that housing prices in the D.C., Maryland, and Virginia (DMV) areas are for the most part
+trending upward from 2021 to 2023. However, further statistical testing revealed deeper trends. ANOVA testing on DC throughout the years 2021-2023 revealed that there is not a significant difference in the average ZHVI of the area throughout the three years. ANOVA testing on Maryland and Virginia led to different results. As mentioned before in the report, ANOVA testing revealed the average ZHVI in the state of Maryland in the year 2022 was significantly higher than in 2021. The same goes for the average ZHVI in MD from 2023 being significantly higher than 2021. However, the average ZHVI for Maryland in 2023 is not significantly higher than the average ZHVI of Maryland 2022. In Virginia, we observed that every year had a significantly difference in the average ZHVI. 
+
+However, the limitations of using Zillow’s data, such as reliance on properties listed on their platform and potential discrepancies in the Zestimate, indicate that while the data provides valuable insights, it may not fully represent the broader market dynamics. Factors like income levels, property characteristics, and local economic conditions could further elucidate the housing market trends in the DMV area. Addressing these variables through additional research could enhance the understanding of housing 
 price fluctuations and affordability challenges in this region.
 
-In conclusion, this exploratory data analysis of housing prices in the D.C., Maryland, and Virginia (DMV) 
-area reveals significant upward trends in home values over the past few years. The dataset sourced from Zillow 
-highlights the complexities of the housing market and underscores the need for localized analysis to understand 
-the diverse factors influencing affordability and access to housing.
+In conclusion, this exploratory data analysis of housing prices in the D.C., Maryland, and Virginia (DMV) area reveals mostly upward trends, but not all statistically significant according to Anova testing in home values over the past few years. The dataset sourced from Zillow 
+highlights the complexities of the housing market and underscores the need for localized analysis to understand the diverse factors influencing affordability and access to housing.
 
-While the ZHVI data indicates a general rise in housing prices, it also points to considerable variability across 
-different zip codes, suggesting that not all areas are experiencing these changes uniformly. The findings align 
-with broader national trends, yet they also highlight the unique characteristics of the DMV market, influenced by 
-local economic conditions and demographic shifts.
+While the ZHVI data indicates a general rise in housing prices, it also points to considerable variability across different zip codes, suggesting that not all areas are experiencing these changes uniformly. The findings align with broader national trends, yet they also highlight the unique characteristics of the DMV market, influenced by local economic conditions and demographic shifts.
 
 Moving forward, our research will continue to refine the analysis by incorporating additional socio-economic 
 variables and examining the impacts of rising housing prices on various demographics. Understanding these dynamics 
