@@ -369,15 +369,43 @@ value from the dataset for the study was the previously mentioned ZHVI value. Th
 evaluation of all of the properties in an area not just the ones that have been sold. As stated on the Zillow 
 website the ZHVI values are optimized to achieve three main objectives, timeliness, comprehensiveness, and visibility.
 Zillow aims to have ZHVI value readily accessible and have them be very reflective of the state of the market. Since this
-data is just an aggregation of data, and there is no real form data curation, it eliminates many different types of human 
+data is just an aggregation of data, and there is no real form of data curation, it eliminates many different types of human 
 error that potentially be a problem with other datasets.
 
 
 What analysis has already been completed related to the content in your dataset?
+
+The topic of increasing housing prices has been a hot topic for many years due to its importance for the average American.
+There have already been studies that have been conducted on similar topics of housing prices but we decided to study 
+the general trends of housing in the DMV area to make the study more localized and relevant to the area. To gain a better
+idea of our research question we analyzed other studies that looked at the increasing housing prices across the United 
+States. One study that we looked at in particular for reference is an article by Goldman Sachs titled, "US house prices 
+are forecast to rise more than 4% next year", where it was discussed what it means that the housing prices across the 
+United States was forecasted to increase by 4%. This was attributed to the Federal Reserve cutting interest rates and 
+the economy being stable. This article also discussed that the unaffordability of homes is at an all-time high, which is 
+a reason that we wanted to study this topic and this dataset. The article shows that the housing affordability index is 
+at an all-time low at a value of about 70, in comparison to the value in 2013 which was 150. We thought that based on 
+the current upward trends and an increasing inability for people to afford homes, it would be impactful to have our 
+research question be based on this phenomenon. 
+
 How did the research you gathered contribute to your question development?
+
+The research we conducted on the housing price increase in the United States led us to start thinking about how this trend 
+would look in the DMV area. Another contributing factor in our area of study was the relevance housing prices have on our
+current political landscape. Due to the upcoming election, there has been a lot of discourse on how housing prices are
+making it difficult for the average American to afford a home. There have been discussions on both sides of the election 
+regarding how best to bridge this gap for the middle class, and this made us curious about the actual validity of these statements.
+We then thought of how we could go about studying the particular increase in an area and found that Zillow allows us to also 
+sort by area. This was perfect for the development of our question because it allowed for direct isolation of the area 
+from throughout the United States. This was pivotal as we didn't have to sort through national data for our desired area of study. 
+The development of the research project came fairly easy and naturally after doing the research and becoming interested on how the
+trend would be reflected in the DMV area.
+
 What additional information would be beneficial?
 How did your question change, if at all, after Exploratory Data Analysis?
 Based on EDA can you begin to sketch out an answer to your question?
+
+
 References (APA style preferred)
 
 
