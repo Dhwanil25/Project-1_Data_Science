@@ -309,4 +309,36 @@ ggplot(housing_data, aes(x = log_of_ZHVI))+
 
 Model ideas to build : 
 Model predicting the average home values over all three regions in x amount of years
-Model predicting the average home value of each individual reagion in x amount of years
+Model predicting the average home value of each individual region in x amount of years
+
+
+**Model 1 - Predicting ZHVI over all three regions as a whole**
+```{r}
+
+housing_data$year <- substr(housing_data$month, 1, 4)
+housing_data$year <- as.numeric(housing_data$year)
+
+housing_data$State <- as.factor(housing_data$State)
+housing_data$Metro <- as.factor(housing_data$Metro)
+housing_data$City <- as.factor(housing_data$City)
+
+
+#Very rough draft of the model (11/18)
+ZHVI_model <- lm(log_of_ZHVI ~ year + State + Metro, data = housing_data)
+summary(ZHVI_model)
+```
+
+Based on this first model we can observe year doesn't have much of an impact on the log of ZHVI. However the home being in Maryland or Virginia decreases ZHVI. with the coefficient of year being positive, we can see that log ZHVI will increase by 5.64% within each year of our data. 
+
+Housing values in Maryland are lower than the reference state by approximately 17.2% (after accounting for the year and metro variables).
+
+Housing values in Virginia are lower than the reference state by 13.7%.
+
+```{r}
+#Too slow probably because there are too many levels to the factor
+ZHVI_model_noMetro <- lm(log_of_ZHVI ~ year + State + City, data = housing_data)
+print(ZHVI_model_noMetro)
+
+```
+
+
