@@ -328,11 +328,79 @@ ZHVI_model <- lm(log_of_ZHVI ~ year + State + Metro, data = housing_data)
 summary(ZHVI_model)
 ```
 
-Based on this first model we can observe year doesn't have much of an impact on the log of ZHVI. However the home being in Maryland or Virginia decreases ZHVI. with the coefficient of year being positive, we can see that log ZHVI will increase by 5.64% within each year of our data. 
+Based on this first model we can observe year does have a significant impact on the log of ZHVI. The coefficient of year being positive, we can see that log ZHVI will increase by 5.8% within each year of our data. 
 
-Housing values in Maryland are lower than the reference state by approximately 17.2% (after accounting for the year and metro variables).
+Housing values in Maryland are lower than the reference state(DC) by approximately -15.8% (exp(0.0564) -1) (after accounting for the year and metro variables).
 
-Housing values in Virginia are lower than the reference state by 13.7%.
+Housing values in Virginia are lower than the reference state(DC) by 12.9%. (exp(-0.0137)-1)
+
+More importantly, we observe that Metro areas are highly significant due to p-values below 0.05. 
+Coefficient values for specific metro areas have stronger affects in areas like Washington-Arlington-Alexandria, and Easton, MD. Others are significantly lower like in Big Stone Gap, VA
+
+```{r residuals without NAs being removed}
+ZHVI_model <- lm(log_of_ZHVI ~ year + State + Metro, data = housing_data, na.action = na.exclude)
+housing_data$residuals <- residuals(ZHVI_model)
+housing_data$fitted_values <- fitted(ZHVI_model)
+
+library(ggplot2)
+ggplot(housing_data, aes(x = fitted_values, y = residuals)) +
+  geom_point(alpha = 0.4) +                # Scatterplot of residuals
+  geom_smooth(method = "loess", col = "red") +  # Lowess line
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +  # Zero line
+  labs(title = "Residuals vs Fitted Values (Handling NAs)",
+       x = "Fitted Values (log of ZHVI)",
+       y = "Residuals") +
+  theme_minimal()
+
+
+```
+
+
+```{r residual plots with NA removed} 
+
+model_data <- model.frame(ZHVI_model)
+
+# Add residuals and fitted values to this dataset
+model_data$residuals <- residuals(ZHVI_model)
+model_data$fitted_values <- fitted(ZHVI_model)
+
+# Create Residual vs. Fitted Plot
+library(ggplot2)
+
+ggplot(model_data, aes(x = fitted_values, y = residuals)) +
+  geom_point(alpha = 0.4) +                # Scatterplot of residuals
+  geom_smooth(method = "loess", col = "red") +  # Lowess line
+  geom_hline(yintercept = 0, linetype = "dashed", color = "blue") +  # Zero line
+  labs(title = "Residuals vs Fitted Values",
+       x = "Fitted Values (log of ZHVI)",
+       y = "Residuals") +
+  theme_minimal()
+
+```
+    
+    
+    
+```{r}
+ZHVI_model_interaction <- lm(log_of_ZHVI ~ year * State + Metro, data = housing_data)
+summary(ZHVI_model_interaction)
+
+```
+
+
+
+```{r}
+ZHVI_model_interaction2 <- lm(log_of_ZHVI ~ year * State * Metro, data = housing_data)
+summary(ZHVI_model_interaction2)
+```
+
+
+```{r}
+install.packages("car")  
+library(car)
+
+vif(ZHVI_model)
+```
+
 
 ```{r}
 #Too slow probably because there are too many levels to the factor
@@ -340,5 +408,24 @@ ZHVI_model_noMetro <- lm(log_of_ZHVI ~ year + State + City, data = housing_data)
 print(ZHVI_model_noMetro)
 
 ```
+
+**ANOVA testing models**
+```{r}
+anova(ZHVI_model, ZHVI_model_interaction, ZHVI_model_interaction2)
+
+```
+Based on the anova testing adding interaction terms improved the model from the initial model, ZHVI_model. So far model 3 with all 3 variables of year, state and metro and their interactions is the best model. However, can we improve it? 
+
+
+
+**Testing more variables in the model**
+```{r}
+
+
+
+```
+
+
+
 
 
