@@ -335,7 +335,24 @@ Housing values in Maryland are lower than the reference state(DC) by approximate
 Housing values in Virginia are lower than the reference state(DC) by 12.9%. (exp(-0.0137)-1)
 
 More importantly, we observe that Metro areas are highly significant due to p-values below 0.05. 
-Coefficient values for specific metro areas have stronger affects in areas like Washington-Arlington-Alexandria, and Easton, MD. Others are significantly lower like in Big Stone Gap, VA
+Coefficient values for specific metro areas have stronger affects in areas like Washington-Arlington-Alexandria, and Easton, MD. Others are significantly lower like in Big Stone Gap, VA. 
+
+#Let's try to see if SizeRank will add anything to the model 
+
+```{r}
+ZHVI_model_sizerank <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank, data = housing_data)
+summary(ZHVI_model_sizerank)
+```
+
+From the result we observe, SizeRank offers almost nothing to the model. The R-squared and adjusted R-squared values have hardly changed at all. The coefficient for the value is also negligible. The p-value says the coefficient is statistically significant, but likely because of the large sample size. The RSE is the same too, so the model hasn't really improved. 
+
+```{r}
+housing_data$SizeRank2 <- as.factor(housing_data$SizeRank)
+ZHVI_model_sizerank2 <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank2, data = housing_data)
+summary(ZHVI_model_sizerank2)
+```
+After converting SizeRank into a factor variable and placing it into the model, the r-squared and mutliple r-squared shot up. Likely overfitting. 
+
 
 ```{r residuals without NAs being removed}
 ZHVI_model <- lm(log_of_ZHVI ~ year + State + Metro, data = housing_data, na.action = na.exclude)
@@ -419,13 +436,49 @@ Based on the anova testing adding interaction terms improved the model from the 
 
 
 **Testing more variables in the model**
-```{r}
+```{r ridge regression}
+# Install the package if you haven't already
+install.packages("glmnet")
 
+# Load the package
+library(glmnet)
+
+# Prepare the data
+x <- model.matrix(log_of_ZHVI ~ year + State + Metro + SizeRank, data = housing_data)[, -1]  # Matrix form without the intercept
+y <- housing_data$log_of_ZHVI
+
+# Fit the Ridge model (alpha = 0 for Ridge)
+ridge_model <- glmnet(x, y, alpha = 0)
+
+# Check the coefficients
+coef(ridge_model)
+
+# Cross-validation for Ridge
+cv_ridge <- cv.glmnet(x, y, alpha = 0)
+plot(cv_ridge)
+
+# Best lambda (regularization strength)
+cv_ridge$lambda.min
 
 
 ```
 
 
 
+```{r}
+
+# Install the randomForest package
+install.packages("randomForest")
+library(randomForest)
+
+# Fit a Random Forest model
+rf_model <- randomForest(log_of_ZHVI ~ year + State + Metro + SizeRank, data = housing_data)
+
+# Print model summary
+print(rf_model)
+
+# Plot the importance of variables
+plot(rf_model)
 
 
+```
