@@ -317,25 +317,58 @@ Model predicting the average home value of each individual region in x amount of
 
 housing_data$year <- substr(housing_data$month, 1, 4)
 housing_data$year <- as.numeric(housing_data$year)
-
+housing_data$RegionName <- as.factor(housing_data$RegionName)
 housing_data$State <- as.factor(housing_data$State)
 housing_data$Metro <- as.factor(housing_data$Metro)
 housing_data$City <- as.factor(housing_data$City)
 
 
 #Very rough draft of the model (11/18)
-ZHVI_model <- lm(log_of_ZHVI ~ year + State + Metro, data = housing_data)
+ZHVI_model <- lm(log_of_ZHVI ~ year + State + Metro + RegionName, data = housing_data)
 summary(ZHVI_model)
 ```
 
-Based on this first model we can observe year does have a significant impact on the log of ZHVI. The coefficient of year being positive, we can see that log ZHVI will increase by 5.8% within each year of our data. 
+With the initial model we've built we've changed variables like state, metro, city, and RegionName(zipcode) into factor variables. Our first model is testing what we might find from all the variables being included in the linear model. The result is a model that's very over fitting. With an mutliple and adjusted R-squared of 0.996 as well as a residual standard error of 0.0393. So our next step is to adjust and simplify the model.
 
-Housing values in Maryland are lower than the reference state(DC) by approximately -15.8% (exp(0.0564) -1) (after accounting for the year and metro variables).
+```{r}
+ZHVI_model_simple <- lm(log_of_ZHVI ~ year + State + Metro, data = housing_data)
+summary(ZHVI_model_simple)
+```
+After simplifying the model by removing RegionName(zipcode) we see that the rsquared has dropped significantly to 0.576 and the adjusted r squared is now 0.575. Before checking to make the model even simpler, we want to check the residuals.
 
-Housing values in Virginia are lower than the reference state(DC) by 12.9%. (exp(-0.0137)-1)
 
-More importantly, we observe that Metro areas are highly significant due to p-values below 0.05. 
-Coefficient values for specific metro areas have stronger affects in areas like Washington-Arlington-Alexandria, and Easton, MD. Others are significantly lower like in Big Stone Gap, VA. 
+```{r}
+##Checking residuals, normality, homoskedacity
+
+# Residuals vs. Fitted Values Plot
+plot(ZHVI_model_simple$fitted.values, resid(ZHVI_model_simple),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residuals vs Fitted")
+abline(h = 0, col = "red")
+
+# Q-Q Plot for Normality of Residuals
+qqnorm(resid(ZHVI_model_simple), main = "Q-Q Plot of Residuals")
+qqline(resid(ZHVI_model_simple), col = "red")
+
+# Scale-Location Plot
+plot(ZHVI_model_simple$fitted.values, sqrt(abs(resid(ZHVI_model_simple))),
+     xlab = "Fitted Values", ylab = "Square Root of |Residuals|",
+     main = "Scale-Location Plot")
+abline(h = 0, col = "red")
+
+#Check normality
+ks.test(resid(ZHVI_model_simple), "pnorm", 
+        mean = mean(resid(ZHVI_model_simple)), 
+        sd = sd(resid(ZHVI_model_simple)))
+#Check Homoscedasticity
+install.packages("lmtest") # If not already installed
+library(lmtest)
+bptest(ZHVI_model_simple)
+
+```
+
+
+
 
 #Let's try to see if SizeRank will add anything to the model 
 
@@ -444,6 +477,8 @@ install.packages("glmnet")
 library(glmnet)
 
 # Prepare the data
+housing_data <- housing_data[!is.na(housing_data$ZHVI), ]
+
 x <- model.matrix(log_of_ZHVI ~ year + State + Metro + SizeRank, data = housing_data)[, -1]  # Matrix form without the intercept
 y <- housing_data$log_of_ZHVI
 
@@ -451,7 +486,7 @@ y <- housing_data$log_of_ZHVI
 ridge_model <- glmnet(x, y, alpha = 0)
 
 # Check the coefficients
-coef(ridge_model)
+print(coef(ridge_model))
 
 # Cross-validation for Ridge
 cv_ridge <- cv.glmnet(x, y, alpha = 0)
@@ -460,9 +495,24 @@ plot(cv_ridge)
 # Best lambda (regularization strength)
 cv_ridge$lambda.min
 
+#Use the ideal lambda to create a new ridge model
+ridge_final_model <- glmnet(x,y, alpha = 0, labda = cv_ridge$lambda.min)
+
+#coefficients for ridge
+print(coef(ridge_final_model))
+
+predictions <- predict(ridge_final_model, s = cv_ridge$lambda.min, newx = x)
+mse <- mean((y - predictions)^2)
+cat("Mean Squared Error for Ridge Model:", mse, "\n")
+
+#Compare to linear model 
+baseline_model <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank, data = housing_data)
+baseline_predictions <- predict(baseline_model, newdata = housing_data)
+baseline_mse <- mean((housing_data$log_of_ZHVI - baseline_predictions)^2)
+cat("MSE for Baseline Linear Model:", baseline_mse, "\n")
 
 ```
-
+Turns out the ridge  regression model isn't more effective than the original linear model. The MSE is lower with the original model.
 
 
 ```{r}
