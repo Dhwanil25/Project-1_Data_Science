@@ -331,7 +331,7 @@ summary(ZHVI_model)
 With the initial model we've built we've changed variables like state, metro, city, and RegionName(zipcode) into factor variables. Our first model is testing what we might find from all the variables being included in the linear model. The result is a model that's very over fitting. With an mutliple and adjusted R-squared of 0.996 as well as a residual standard error of 0.0393. So our next step is to adjust and simplify the model.
 
 ```{r}
-ZHVI_model_simple <- lm(log_of_ZHVI ~ year + State + Metro, data = housing_data)
+ZHVI_model_simple <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank, data = housing_data)
 summary(ZHVI_model_simple)
 ```
 After simplifying the model by removing RegionName(zipcode) we see that the rsquared has dropped significantly to 0.576 and the adjusted r squared is now 0.575. Before checking to make the model even simpler, we want to check the residuals.
@@ -366,7 +366,150 @@ library(lmtest)
 bptest(ZHVI_model_simple)
 
 ```
+Following the residuals vs fitted plot and the q-q plot, we observe there is some heteroscedasticity. The q-q plot also shows there are a few outliers in the dataset. 
 
+This is to be expected since ZHVI was not normally distributed. Taking the log transformation of ZHVI helped, but didn't make it perfectly normally distributed. Let's check the mutlicollinearity. 
+
+```{r}
+#Checking for Multicollinearity
+install.packages("car")
+library(car)
+
+vif(ZHVI_model_simple)
+
+```
+
+Based on the output of the vif stats, we observe that the VIF for all variables is below 5 and is acceptable. We can move forward with adjusting the lm based on this. Let us try and test the model 
+
+```{r}
+#Split into training and testing by year
+training_data <- subset(housing_data, year %in% c(2021, 2022))
+testing_data <- subset(housing_data, year == 2023)
+
+ZHVI_model_train <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank, data = training_data)
+predictions <- predict(ZHVI_model_train, newdata = testing_data)
+
+actuals <- testing_data$log_of_ZHVI
+test_residuals <- actuals - predictions
+
+MAE <- mean(abs(test_residuals))   # Mean Absolute Error
+RMSE <- sqrt(mean(test_residuals^2)) # Root Mean Squared Error
+R2 <- cor(predictions, actuals)^2  # R-squared on test data
+
+cat("MAE:", MAE, "\n")
+cat("RMSE:", RMSE, "\n")
+cat("R-squared:", R2, "\n")
+
+test_data_2023 <- testing_data[testing_data$year == 2023, ]
+test_data_2023$predicted <- predictions[testing_data$year == 2023]
+
+#Scatter plot
+plot(
+  test_data_2023$log_of_ZHVI, test_data_2023$predicted,
+  xlab = "Actual Log(ZHVI)", ylab = "Predicted Log(ZHVI)",
+  main = "Actual vs Predicted Log(ZHVI) for 2023",
+  pch = 16, col = "blue"
+)
+abline(0, 1, col = "red", lwd = 2) # Add a 45-degree line for perfect prediction
+
+# Line plot using ggplot2
+library(ggplot2)
+ggplot(test_data_2023, aes(x = 1:nrow(test_data_2023))) +
+  geom_line(aes(y = log_of_ZHVI, color = "Actual")) +
+  geom_line(aes(y = predicted, color = "Predicted")) +
+  labs(
+    x = "Index",
+    y = "Log(ZHVI)",
+    title = "Trends in Actual vs Predicted Log(ZHVI) for 2023"
+  ) +
+  scale_color_manual(values = c("Actual" = "blue", "Predicted" = "red")) +
+  theme_minimal()
+```
+To fully test how our model performs on unseen data, we decided to split the data into training and testing sets based on years. As shown above, we gave the years 2021-2022 into the training set and 2023 into the test set to observe how well our model will work on onseen data. The result is the model explains 56% of the variance in log(ZHVI) wih a MAE of 0.293 and RMSE of 0.39. 
+
+The results suggest that housing value data in general have many other variables that can and do affect it. Things like income, housing supply, crime, and more were not included in the data Zillow provides from their website directly.
+
+Let us test if the model itself is the problem by using random forest. Random forest is a bit more suited for complex models than the linear model. 
+
+```{r}
+# Load necessary library
+library(randomForest)
+
+# Random forest with Continuous SizeRank
+rf_model_continuous <- randomForest(
+  log_of_ZHVI ~ year + State + Metro + SizeRank,
+  data = training_data,
+  importance = TRUE,  # To calculate variable importance
+  ntree = 500         # Number of trees
+)
+
+# Predictions
+rf_predictions_continuous <- predict(rf_model_continuous, newdata = testing_data)
+
+# Performance Metrics
+rf_residuals_continuous <- testing_data$log_of_ZHVI - rf_predictions_continuous
+MAE_rf_continuous <- mean(abs(rf_residuals_continuous))
+RMSE_rf_continuous <- sqrt(mean(rf_residuals_continuous^2))
+R2_rf_continuous <- cor(rf_predictions_continuous, testing_data$log_of_ZHVI)^2
+
+# Print metrics
+cat("Random Forest with Continuous SizeRank:\n")
+cat("MAE:", MAE_rf_continuous, "\nRMSE:", RMSE_rf_continuous, "\nR-squared:", R2_rf_continuous, "\n")
+
+# Variable Importance
+importance(rf_model_continuous)
+varImpPlot(rf_model_continuous)
+
+```
+We observe from the random forest model explains slightly more of the variance, but doesn't really have better metrics in MAE or RMSE. It's possible the data relationships aren't totally linear. We do observe that Metro and State are very important features in explaining log(ZHVI).
+
+```{r}
+library(ranger)
+
+rf_model_refined <- ranger(
+  log_of_ZHVI ~ year + State + Metro + SizeRank + City,
+  data = training_data,
+  importance = "impurity",
+  num.trees = 500
+)
+```
+
+
+```{r}
+# Linear model with City added
+ZHVI_model_with_city <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank + City, data = training_data)
+
+# Summary of the model
+summary(ZHVI_model_with_city)
+
+# Ensure City variable in testing data has the same levels as in training data
+testing_data$City <- factor(testing_data$City, levels = levels(training_data$City))
+
+# Identify any new levels in testing data that are not in training data
+new_levels <- setdiff(levels(testing_data$City), levels(training_data$City))
+
+# If there are any new levels, assign them to "Other"
+if (length(new_levels) > 0) {
+  testing_data$City[testing_data$City %in% new_levels] <- "Other"
+}
+
+# Ensure 'City' in testing data has the same factor levels as in training data (including "Other")
+testing_data$City <- factor(testing_data$City, levels = c(levels(training_data$City), "Other"))
+
+# Now make predictions with the updated testing data
+predictions_with_city <- predict(ZHVI_model_with_city, newdata = testing_data)
+
+# Performance Metrics
+actuals <- testing_data$log_of_ZHVI
+residuals_with_city <- actuals - predictions_with_city
+MAE_with_city <- mean(abs(residuals_with_city))
+RMSE_with_city <- sqrt(mean(residuals_with_city^2))
+R2_with_city <- cor(predictions_with_city, actuals)^2
+
+# Print results
+cat("Linear Model with City:\n")
+cat("MAE:", MAE_with_city, "\nRMSE:", RMSE_with_city, "\nR-squared:", R2_with_city, "\n")
+```
 
 
 
@@ -532,3 +675,80 @@ plot(rf_model)
 
 
 ```
+
+
+
+
+
+
+Testing(ignore the code below this)
+```{r}
+training_data <- subset(housing_data, year %in% c(2021, 2022))
+testing_data <- subset(housing_data, year == 2023)
+
+# Model with continuous SizeRank
+model_continuous <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank, data = training_data)
+
+# Predictions
+predictions_continuous <- predict(model_continuous, newdata = testing_data)
+
+# Performance Metrics
+actuals <- testing_data$log_of_ZHVI
+residuals_continuous <- actuals - predictions_continuous
+
+MAE_continuous <- mean(abs(residuals_continuous))
+RMSE_continuous <- sqrt(mean(residuals_continuous^2))
+R2_continuous <- cor(predictions_continuous, actuals)^2
+
+# Print results
+cat("Continuous SizeRank:\n")
+cat("MAE:", MAE_continuous, "\nRMSE:", RMSE_continuous, "\nR-squared:", R2_continuous, "\n")
+
+
+
+```
+
+
+```{r}
+
+# Recreate SizeRank_category for housing_data
+percentiles <- quantile(housing_data$SizeRank, probs = c(0, 0.1, 0.3, 0.6, 1), na.rm = TRUE)
+
+housing_data$SizeRank_category <- cut(
+  housing_data$SizeRank,
+  breaks = percentiles,
+  labels = c("Top 10%", "10-30%", "30-60%", "60-100%"),
+  include.lowest = TRUE
+)
+
+# Split housing_data into training and testing data again
+training_data <- subset(housing_data, year %in% c(2021, 2022))
+testing_data <- subset(housing_data, year == 2023)
+
+# Check distribution of SizeRank_category in training and testing data
+cat("Training Data Distribution:\n")
+print(table(training_data$SizeRank_category))
+cat("\nTesting Data Distribution:\n")
+print(table(testing_data$SizeRank_category))
+
+# Build the categorical model
+model_categorical <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank_category, data = training_data)
+
+# Generate predictions for the testing data
+predictions_categorical <- predict(model_categorical, newdata = testing_data)
+
+# Calculate performance metrics
+actuals <- testing_data$log_of_ZHVI
+residuals_categorical <- actuals - predictions_categorical
+
+MAE_categorical <- mean(abs(residuals_categorical))
+RMSE_categorical <- sqrt(mean(residuals_categorical^2))
+R2_categorical <- cor(predictions_categorical, actuals)^2
+
+# Print results
+cat("Categorical SizeRank:\n")
+cat("MAE:", MAE_categorical, "\nRMSE:", RMSE_categorical, "\nR-squared:", R2_categorical, "\n")
+
+```
+
+
