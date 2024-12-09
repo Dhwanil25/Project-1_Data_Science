@@ -510,8 +510,152 @@ R2_with_city <- cor(predictions_with_city, actuals)^2
 cat("Linear Model with City:\n")
 cat("MAE:", MAE_with_city, "\nRMSE:", RMSE_with_city, "\nR-squared:", R2_with_city, "\n")
 ```
+So based on the results of the model. We have to test for overfitting. We have a mutliple r-squared of 0.932 and an adjusted r-squared of 0.93. It's possible that adding city overcomplicated the data since it is a factor variable with many levels. We will test that next
+
+```{r}
+
+library(caret)
 
 
+# Set up cross-validation with 10 folds
+train_control <- trainControl(method = "cv", number = 10)
+
+# Fit the model with City included
+model_with_city <- train(log_of_ZHVI ~ year + State + Metro + City, data = housing_data,
+                         method = "lm", trControl = train_control)
+
+# View the results of cross-validation
+print(model_with_city)
+
+
+```
+
+
+
+```{r}
+library(leaps)
+
+# Forward stepwise selection
+forward_selection <- regsubsets(
+  log_of_ZHVI ~ year + State + Metro + City + SizeRank, # Full set of predictors
+  data = housing_data,        # Your dataset
+  method = "forward",         # Specify forward stepwise selection
+  nvmax = 10                  # Maximum number of predictors to include
+)
+
+# Summary of the forward selection process
+summary_forward <- summary(forward_selection)
+
+# Display the results
+print(summary_forward)
+
+# Get the best model for each number of predictors
+best_models <- summary_forward$which
+print(best_models)
+
+# Plotting the adjusted R-squared to visualize the best number of predictors
+plot(summary_forward$adjr2, type = "b", xlab = "Number of Predictors", ylab = "Adjusted R-squared")
+
+```
+
+```{r}
+forward_model_with_city <- regsubsets(
+    log_of_ZHVI ~ year + State + Metro + SizeRank + City,
+    data = housing_data,
+    nvmax = 12,  # Adjust if you want to limit the number of predictors
+    method = "forward"
+)
+summary_forward_city <- summary(forward_model_with_city)
+
+coef(forward_model_with_city, which.max(summary_forward_city$adjr2))
+```
+
+After testing  this, we can observe that overfitting is a problem with models of this dataset. Many of the variables given to us in this dataset are geographical. So for example, state, city, metro, and zipcode are all geographical measures of different degrees. Including all, or certain variables with a high number of levels introduces our model to noise and leads to overcomplexity and overfitting. 
+
+
+```{r}
+library(caret)
+library(ggplot2)
+library(lattice)
+
+housing_data_clean <- na.omit(housing_data)
+
+
+control <- trainControl(method = "cv", number = 10)  # 10-fold cross-validation
+
+
+
+model_with_city <- train(log_of_ZHVI ~ year + State + Metro + City, 
+                         data = housing_data_clean, 
+                         method = "lm", 
+                         trControl = control)
+
+model_without_city <- train(log_of_ZHVI ~ year + State + Metro, 
+                             data = housing_data_clean, 
+                             method = "lm", 
+                             trControl = control)
+
+
+print(model_with_city)
+print(model_without_city)
+```
+Code took forever to run further proving that many of the variables with an incredibly high level of factors have led to longer computation times, overfitting, and more model complexity.
+
+
+
+
+```{r}
+# Model with City
+summary(lm(log_of_ZHVI ~ year + State + Metro + City, data = housing_data))
+
+# Model without City
+summary(lm(log_of_ZHVI ~ year + State + Metro, data = housing_data))
+
+```
+
+```{r}
+housing_data <- na.omit(housing_data)
+
+
+# Split the data into training and testing sets
+set.seed(123)  # Set seed for reproducibility
+trainIndex <- createDataPartition(housing_data$log_of_ZHVI, p = 0.8, list = FALSE)
+train_data <- housing_data[trainIndex, ]
+test_data <- housing_data[-trainIndex, ]
+
+# Load necessary libraries
+library(caret)
+library(glmnet)
+
+# Set up cross-validation control
+control <- trainControl(method = "cv", number = 10)  # 10-fold cross-validation
+
+# Ridge regression model (L2 regularization)
+model_ridge <- train(log_of_ZHVI ~ year + State + Metro + City, 
+                     data = train_data,  # Use the training set
+                     method = "glmnet", 
+                     trControl = control, 
+                     tuneGrid = expand.grid(alpha = 0, lambda = seq(0.0001, 1, length = 100)))
+
+# Print model results
+print(model_ridge)
+```
+Based on the many different steps we've tried by now, we can see many of our variables we thought would contribute meaningfully to our linear model has led to problems in overfitting, complexity, and computation. So we decided maybe to take a different approach and add some variables Zillow didn't give to us before. 
+
+
+```{r}
+
+
+
+
+```
+
+
+
+
+
+
+##IGNORE CODE BELOW FOR NOW##
 
 #Let's try to see if SizeRank will add anything to the model 
 
