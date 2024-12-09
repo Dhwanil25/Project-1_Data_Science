@@ -529,7 +529,8 @@ print(model_with_city)
 
 
 ```
-
+Result: Error in na.fail.default(list(log_of_ZHVI = c(12.8550329145667, 12.6063557512654,  : 
+  missing values in object
 
 
 ```{r}
@@ -613,6 +614,24 @@ summary(lm(log_of_ZHVI ~ year + State + Metro, data = housing_data))
 
 ```
 
+Result: The model with city had a multiple R-squared of 0.93 and an adjusted R-squared of 0.928. It also returned "5 not defined because of singularities". Given the many levels of some of the variables, it might be better to just simplify the model.
+
+```{r}
+# Load the car package
+library(car)
+
+# Fit the linear model
+housing_model <- lm(log_of_ZHVI ~ year + State + Metro + City, data = housing_data)
+
+# Calculate VIF for each predictor
+vif_values <- vif(housing_model)
+
+# View the VIF values
+print(vif_values)
+```
+
+Testing for multicollinearity in this model with City included we get the error "there are aliased coefficients in the model". An error that occurs when there is perfrect multicollinearity in the model.
+
 ```{r}
 housing_data <- na.omit(housing_data)
 
@@ -644,13 +663,72 @@ Based on the many different steps we've tried by now, we can see many of our var
 
 
 ```{r}
+# Load ACS data and your housing dataset
+acs_data <- read.csv("Merged_ZHVI_ACS.csv")
+housing_data <- read.csv("C:/Users/shime/Downloads/zhvi-all-homes_md-va-dc_2021-2023.csv")
+
+# Convert 'zhvi' in ACS data: Remove '$' and commas, then convert to numeric
+acs_data$zhvi <- as.numeric(gsub("[\\$,]", "", acs_data$zhvi))
+
+# Ensure 'RegionName' in housing_data matches 'zipcode' in acs_data
+housing_data$RegionName <- as.character(housing_data$RegionName)
+acs_data$zipcode <- as.character(acs_data$zipcode)
+
+# Merge datasets using 'RegionName' and 'zipcode' as the key
+merged_data <- merge(housing_data, acs_data, by.x = "RegionName", by.y = "zipcode", all.x = TRUE)
+
+# Feature Engineering: Add derived variables
+merged_data$income_per_household <- merged_data$averageincome / merged_data$households
+#Check if average_income is skewed
+hist(merged_data$averageincome, main = "Histogram of Average Income", xlab = "Average Income")
+merged_data$log_averageincome <- log(merged_data$averageincome)
+
+# Save the enhanced dataset
+write.csv(merged_data, "enhanced_housing_data.csv", row.names = FALSE)
+
+```
+
+```{r}
+hist(merged_data$log_averageincome, main = "Histogram of Average Income", xlab = "Average Income")
+
+# Ensure zhvi is numeric
+merged_data$zhvi <- as.numeric(merged_data$zhvi)
 
 
+merged_data$log_of_ZHVI <- log(merged_data$ZHVI)
 
+
+#Test which variable log(ZHVI) has a stronger relationship with 
+cor(merged_data$log_of_ZHVI, merged_data$averageincome, use = "complete.obs")
+cor(merged_data$log_of_ZHVI, log(merged_data$averageincome), use = "complete.obs")
 
 ```
 
 
+
+```{r}
+
+new_housing_model <- lm(log_of_ZHVI ~ averageincome + households + State + Metro + SizeRank, data = merged_data)
+summary(new_housing_model)
+
+```
+
+Compared to the original linear model with only geographical predictors, this model is significantly improved. The Multiple R-squared is at 0.784 and the adjusted is the same. 
+
+Breaking down coefficients: A 1% increase in the average income corresponds to an increase in the log_ZHVI by about 0.86%. To no surprise coefficients for MD and VA are negative meaning they have a lower log_of_ZHVI compared to the reference state of DC.
+
+```{r}
+interaction_model <- lm(log_of_ZHVI ~ averageincome * households + averageincome * State + averageincome * Metro + SizeRank, data = merged_data)
+summary(interaction_model)
+```
+
+The interaction term between log(averageincome) and households is significant, with a p-value of 1.5e-06. This suggests that the relationship between average income and ZHVI may depend on the number of households.
+
+Many interaction terms between log(averageincome) and the State or Metro variables are also significant, indicating that the effect of income on ZHVI differs across various regions and metros.
+
+These results support the idea that the relationship between income and housing values is not uniform across different areas, and adjusting for these interactions could improve model accuracy.
+
+The multiple and adjusted r-squared are now 0.804.
 
 
 
