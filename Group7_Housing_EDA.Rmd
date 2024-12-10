@@ -282,6 +282,9 @@ The result for maryland confirms that the average ZHVI in the state in the year 
 For Virginia the average ZHVI in 2022 was significantly higher than in 2021. The average ZHVI in 2023 is significantly higher than in 2021. The average ZHVI in 2023 is also significantly higher than in 2022.
 
 
+
+*Prep for write-up*
+
 **Modeling work**
 
 
@@ -294,8 +297,12 @@ str(housing_data)
 ggplot(housing_data, aes(x = ZHVI)) +
   geom_histogram(bins = 30, fill = "orange", alpha= 0.7) +
   labs(title = "Histogram of ZHVI", x = "ZHVI", y = "frequency")
+```
 
-#Doesn't look normally distributed so I'm creating a column with it transformed to look more normally distributed
+The target variable in our models, ZHVI, doesn't look normally distributed so I'm creating a column with it transformed to look more normally distributed. 
+
+
+```{r}
 housing_data$log_of_ZHVI <- log(housing_data$ZHVI)
 
 
@@ -307,38 +314,64 @@ ggplot(housing_data, aes(x = log_of_ZHVI))+
 
 ```
 
-Model ideas to build : 
-Model predicting the average home values over all three regions in x amount of years
-Model predicting the average home value of each individual region in x amount of years
+After transforming the target variable, we can observe that the variable isn't perfectly distributed, but it's taken a large step in coming as close as possible to being normally distributed as possible. Therefore, we will move forward with the transformation being our target variable.
 
-
-**Model 1 - Predicting ZHVI over all three regions as a whole**
+**Preparing predictors to work in models**
 ```{r}
-
+#Creating a year variable and making it numeric
 housing_data$year <- substr(housing_data$month, 1, 4)
 housing_data$year <- as.numeric(housing_data$year)
+
+#Changing the categorical variables in our data to factors
 housing_data$RegionName <- as.factor(housing_data$RegionName)
 housing_data$State <- as.factor(housing_data$State)
 housing_data$Metro <- as.factor(housing_data$Metro)
 housing_data$City <- as.factor(housing_data$City)
+```
 
+
+```{r}
 
 #Very rough draft of the model (11/18)
 ZHVI_model <- lm(log_of_ZHVI ~ year + State + Metro + RegionName, data = housing_data)
 summary(ZHVI_model)
 ```
 
-With the initial model we've built we've changed variables like state, metro, city, and RegionName(zipcode) into factor variables. Our first model is testing what we might find from all the variables being included in the linear model. The result is a model that's very over fitting. With an mutliple and adjusted R-squared of 0.996 as well as a residual standard error of 0.0393. So our next step is to adjust and simplify the model.
+With the initial model we've built we've changed variables like state, metro, city, and RegionName(zipcode) into factor variables. Our first model is testing what we might find from most of the variables being included in the linear model. The result is a model that's very over fitting. With a mutliple and adjusted R-squared of 0.996 as well as a residual standard error of 0.0393. So our next step is to adjust and simplify the model and ditch the following model.
+
+
+**Model 1 - Predicting ZHVI over all three regions as a whole**
 
 ```{r}
+#Avoiding factor variables with a large number of levels
 ZHVI_model_simple <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank, data = housing_data)
 summary(ZHVI_model_simple)
 ```
-After simplifying the model by removing RegionName(zipcode) we see that the rsquared has dropped significantly to 0.576 and the adjusted r squared is now 0.575. Before checking to make the model even simpler, we want to check the residuals.
+After simplifying the model by removing RegionName(zipcode) we see that the r-squared has dropped significantly to 0.576 and the adjusted r-squared is now 0.576. Before checking to make the model even simpler, we want to check the residuals.
 
 
+**Check model with the same variables, this time adding interactions**
 ```{r}
-##Checking residuals, normality, homoskedacity
+ZHVI_model_interaction <- lm(log_of_ZHVI ~ year * State + year * Metro + SizeRank * Metro, data = housing_data)
+summary(ZHVI_model_interaction)
+```
+
+From checking the interaction between predictors like year and state or year and metro among other interactions. The new model explains slightly more variance in the data (60.2%). We still believe there's room for improvement though. 
+
+Conclusions from interactions: 
+
+Year does not have a significant impact on ZHVI on it's own. Of course this is to be expected since year doesn't have the same uniform affect across all areas. (Coefficient=2.33e-03, p= 0.89596)
+
+As discussed before, compared to DC states MD and VA have negative effects on ZHVI. Of course metro terms are significant signaling year has a different impact on different metro areas. 
+
+SizeRank and Metro interactions were highly significant. Metro areas with larger cities (lower SizeRank) have a stronger positive impact on ZHVI while others might be smaller or negative. Metro areas like Baltimore-Columbia-Towson, had positive coefficients while more rural areas like Big Stone Gap, VA(population 5,114) have negative impacts on ZHVI.
+
+
+With that being said, we want to move forward by keeping the model as simple as possible. We decide that the trade-off between having interaction terms and the increase of our multiple and adjusted r-squared values isn't worth it. We move foward with the linear regression model from before that didn't have interaction terms.
+
+**Checking assumptions of linear regression models from our initial model with 4 predictors no interactions**
+```{r}
+#Checking residuals, normality, homoscedacity
 
 # Residuals vs. Fitted Values Plot
 plot(ZHVI_model_simple$fitted.values, resid(ZHVI_model_simple),
@@ -370,6 +403,26 @@ Following the residuals vs fitted plot and the q-q plot, we observe there is som
 
 This is to be expected since ZHVI was not normally distributed. Taking the log transformation of ZHVI helped, but didn't make it perfectly normally distributed. Let's check the mutlicollinearity. 
 
+**Residuals vs Fitted Plot for model with interaction terms**
+```{r}
+# Step 1: Extract residuals and fitted values
+residuals_interaction <- residuals(ZHVI_model_interaction)
+fitted_values_interaction <- fitted(ZHVI_model_interaction)
+
+# Step 2: Create Residuals vs Fitted plot
+plot(
+  fitted_values_interaction,
+  residuals_interaction,
+  xlab = "Fitted Values",
+  ylab = "Residuals",
+  main = "Residuals vs Fitted (Interaction Model)",
+  pch = 20,
+  col = "blue"
+)
+abline(h = 0, col = "red", lwd = 2) # Add horizontal reference line
+
+```
+
 ```{r}
 #Checking for Multicollinearity
 install.packages("car")
@@ -379,7 +432,7 @@ vif(ZHVI_model_simple)
 
 ```
 
-Based on the output of the vif stats, we observe that the VIF for all variables is below 5 and is acceptable. We can move forward with adjusting the lm based on this. Let us try and test the model 
+Based on the output of the vif stats, we observe that the VIF for all variables is below 5 and is acceptable. We can move forward with adjusting the model based on this. Let us try and test the model by splitting the data by our newly created variable, year. We will train our data on the years 2021 and 2022 and test it on the year 2023. 
 
 ```{r}
 #Split into training and testing by year
@@ -389,19 +442,25 @@ testing_data <- subset(housing_data, year == 2023)
 ZHVI_model_train <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank, data = training_data)
 predictions <- predict(ZHVI_model_train, newdata = testing_data)
 
-actuals <- testing_data$log_of_ZHVI
-test_residuals <- actuals - predictions
 
-MAE <- mean(abs(test_residuals))   # Mean Absolute Error
-RMSE <- sqrt(mean(test_residuals^2)) # Root Mean Squared Error
-R2 <- cor(predictions, actuals)^2  # R-squared on test data
+
+valid_data <- na.omit(data.frame(actuals, predictions))
+
+
+valid_actuals <- valid_data$actuals
+valid_predictions <- valid_data$predictions
+
+# Calculate residuals
+valid_residuals <- valid_actuals - valid_predictions
+
+# Compute performance metrics
+MAE <- mean(abs(valid_residuals))   # Mean Absolute Error
+RMSE <- sqrt(mean(valid_residuals^2)) # Root Mean Squared Error
+R2 <- cor(valid_predictions, valid_actuals)^2  # R-squared
 
 cat("MAE:", MAE, "\n")
 cat("RMSE:", RMSE, "\n")
 cat("R-squared:", R2, "\n")
-
-test_data_2023 <- testing_data[testing_data$year == 2023, ]
-test_data_2023$predicted <- predictions[testing_data$year == 2023]
 
 #Scatter plot
 plot(
@@ -425,32 +484,84 @@ ggplot(test_data_2023, aes(x = 1:nrow(test_data_2023))) +
   scale_color_manual(values = c("Actual" = "blue", "Predicted" = "red")) +
   theme_minimal()
 ```
-To fully test how our model performs on unseen data, we decided to split the data into training and testing sets based on years. As shown above, we gave the years 2021-2022 into the training set and 2023 into the test set to observe how well our model will work on onseen data. The result is the model explains 56% of the variance in log(ZHVI) wih a MAE of 0.293 and RMSE of 0.39. 
+To fully test how our model performs on unseen data, we decided to split the data into training and testing sets based on years as mentioned before. As shown above, we gave the years 2021-2022 into the training set and 2023 into the test set to observe how well our model will work on unseen data. The result is the model explains 56% of the variance in log(ZHVI) with a MAE of 0.293 and RMSE of 0.39. 
 
-The results suggest that housing value data in general have many other variables that can and do affect it. Things like income, housing supply, crime, and more were not included in the data Zillow provides from their website directly.
+The results suggest that housing data in the real world can be very complex. Things like income, housing supply, houshold size, crime, and more were not included in the data Zillow provides from their website directly. This could explain the plateu we're witnessing when adding more variables from what we presently have.
 
-Let us test if the model itself is the problem by using random forest. Random forest is a bit more suited for complex models than the linear model. 
+
+**Testing the same on the model with interaction terms**
+```{r}
+# Split into training and testing by year
+training_data <- subset(housing_data, year %in% c(2021, 2022))
+testing_data <- subset(housing_data, year == 2023)
+
+# Fit the model with interaction terms
+ZHVI_model_interaction_train <- lm(log_of_ZHVI ~ year * State * Metro * SizeRank, data = training_data)
+
+# Make predictions on the testing data
+predictions_interaction <- predict(ZHVI_model_interaction_train, newdata = testing_data)
+
+# Actual values for testing
+actuals_interaction <- testing_data$log_of_ZHVI
+
+# Calculate residuals
+test_residuals_interaction <- actuals_interaction - predictions_interaction
+
+# Evaluate performance using MAE, RMSE, and R-squared
+MAE_interaction <- mean(abs(test_residuals_interaction))   # Mean Absolute Error
+RMSE_interaction <- sqrt(mean(test_residuals_interaction^2)) # Root Mean Squared Error
+R2_interaction <- cor(predictions_interaction, actuals_interaction)^2  # R-squared on test data
+
+# Print results
+cat("MAE (Interaction Model):", MAE_interaction, "\n")
+cat("RMSE (Interaction Model):", RMSE_interaction, "\n")
+cat("R-squared (Interaction Model):", R2_interaction, "\n")
+
+# Prepare testing data with predictions for further analysis
+testing_data$predicted <- predictions_interaction
+```
+
+
+To move forward with modeling this dataset, we need to determine the following: 
+
+1. Is linear regression the problem for this dataset? (Is the model type too simple for our dataset)
+
+2. Can we witness a higher r-squared value by using another model type?
+
+3. How can we build a model that has stronger predictive power for our target variable? 
+
+Let us test if the linear model itself is the problem by using random forest. Random forest is a bit more suited for complex models than the linear model, so naturally we could expect a better explanation of the variance in our target variable. 
 
 ```{r}
-# Load necessary library
+# Load necessary library for random forest
 library(randomForest)
 
-# Random forest with Continuous SizeRank
+# Remove rows with missing values
+training_data_clean <- na.omit(training_data)
+testing_data_clean <- na.omit(testing_data)
+
+# Check for missing values after removing them
+sum(is.na(training_data_clean))
+sum(is.na(testing_data_clean))
+
+# Random forest with the same variables
 rf_model_continuous <- randomForest(
   log_of_ZHVI ~ year + State + Metro + SizeRank,
-  data = training_data,
+  data = training_data_clean,
   importance = TRUE,  # To calculate variable importance
-  ntree = 500         # Number of trees
+  ntree = 100         # Number of trees
 )
 
+
+
 # Predictions
-rf_predictions_continuous <- predict(rf_model_continuous, newdata = testing_data)
+rf_predictions_continuous <- predict(rf_model_continuous, newdata = testing_data_clean)
 
 # Performance Metrics
-rf_residuals_continuous <- testing_data$log_of_ZHVI - rf_predictions_continuous
+rf_residuals_continuous <- testing_data_clean$log_of_ZHVI - rf_predictions_continuous
 MAE_rf_continuous <- mean(abs(rf_residuals_continuous))
 RMSE_rf_continuous <- sqrt(mean(rf_residuals_continuous^2))
-R2_rf_continuous <- cor(rf_predictions_continuous, testing_data$log_of_ZHVI)^2
+R2_rf_continuous <- cor(rf_predictions_continuous, testing_data_clean$log_of_ZHVI)^2
 
 # Print metrics
 cat("Random Forest with Continuous SizeRank:\n")
@@ -463,54 +574,32 @@ varImpPlot(rf_model_continuous)
 ```
 We observe from the random forest model explains slightly more of the variance, but doesn't really have better metrics in MAE or RMSE. It's possible the data relationships aren't totally linear. We do observe that Metro and State are very important features in explaining log(ZHVI).
 
-```{r}
-library(ranger)
+What we can conclude from this is that again, housing data in the real world is very complex.
 
-rf_model_refined <- ranger(
-  log_of_ZHVI ~ year + State + Metro + SizeRank + City,
-  data = training_data,
-  importance = "impurity",
-  num.trees = 500
+```{r}
+library(caret)
+
+training_data_clean <- na.omit(training_data)
+
+# Set up cross-validation
+tuneGrid <- expand.grid(mtry = c(1, 2, 3, 4))
+
+# Train the model using cross-validation
+rf_model_tuned <- train(
+  log_of_ZHVI ~ year + State + Metro + SizeRank,
+  data = training_data_clean,
+  method = "rf",        # Random Forest method
+  trControl = trainControl(method = "cv", number = 5),  # 5-fold cross-validation
+  tuneGrid = tuneGrid,   # Use the tuning grid for mtry
+  importance = TRUE
 )
+
+# Check the best model and performance
+print(rf_model_tuned)
 ```
 
 
-```{r}
-# Linear model with City added
-ZHVI_model_with_city <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank + City, data = training_data)
 
-# Summary of the model
-summary(ZHVI_model_with_city)
-
-# Ensure City variable in testing data has the same levels as in training data
-testing_data$City <- factor(testing_data$City, levels = levels(training_data$City))
-
-# Identify any new levels in testing data that are not in training data
-new_levels <- setdiff(levels(testing_data$City), levels(training_data$City))
-
-# If there are any new levels, assign them to "Other"
-if (length(new_levels) > 0) {
-  testing_data$City[testing_data$City %in% new_levels] <- "Other"
-}
-
-# Ensure 'City' in testing data has the same factor levels as in training data (including "Other")
-testing_data$City <- factor(testing_data$City, levels = c(levels(training_data$City), "Other"))
-
-# Now make predictions with the updated testing data
-predictions_with_city <- predict(ZHVI_model_with_city, newdata = testing_data)
-
-# Performance Metrics
-actuals <- testing_data$log_of_ZHVI
-residuals_with_city <- actuals - predictions_with_city
-MAE_with_city <- mean(abs(residuals_with_city))
-RMSE_with_city <- sqrt(mean(residuals_with_city^2))
-R2_with_city <- cor(predictions_with_city, actuals)^2
-
-# Print results
-cat("Linear Model with City:\n")
-cat("MAE:", MAE_with_city, "\nRMSE:", RMSE_with_city, "\nR-squared:", R2_with_city, "\n")
-```
-So based on the results of the model. We have to test for overfitting. We have a mutliple r-squared of 0.932 and an adjusted r-squared of 0.93. It's possible that adding city overcomplicated the data since it is a factor variable with many levels. We will test that next
 
 ```{r}
 
@@ -659,6 +748,8 @@ model_ridge <- train(log_of_ZHVI ~ year + State + Metro + City,
 # Print model results
 print(model_ridge)
 ```
+
+
 Based on the many different steps we've tried by now, we can see many of our variables we thought would contribute meaningfully to our linear model has led to problems in overfitting, complexity, and computation. So we decided maybe to take a different approach and add some variables Zillow didn't give to us before. 
 
 
@@ -688,33 +779,23 @@ write.csv(merged_data, "enhanced_housing_data.csv", row.names = FALSE)
 
 ```
 
-```{r}
-hist(merged_data$log_averageincome, main = "Histogram of Average Income", xlab = "Average Income")
+We have merged data from ACS(American Community Survey) under the U.S. Census Bureau to bring in two new variables in our dataset. The variables we will be focusing on are the average household income in a given zipcode and the number of homes in a given zip code. Each of the variables aren't monitored monthly like the ZHVI data we had. Another problem is that the variables only go up until 2022. The data for 2023 isn't readily available yet at the time of writing.
 
-# Ensure zhvi is numeric
-merged_data$zhvi <- as.numeric(merged_data$zhvi)
+The goal in adding these variables is for more of the variance in log(ZHVI) to be explained. From the context of housing as a topic, we know supply is said to have an impact on price as well as average household income. 
 
-
-merged_data$log_of_ZHVI <- log(merged_data$ZHVI)
-
-
-#Test which variable log(ZHVI) has a stronger relationship with 
-cor(merged_data$log_of_ZHVI, merged_data$averageincome, use = "complete.obs")
-cor(merged_data$log_of_ZHVI, log(merged_data$averageincome), use = "complete.obs")
-
-```
-
+Modeling should check if these variabels are statistically significant and if they have strong coefficneints/impacts on the target variable.
 
 
 ```{r}
-
+#Building the new linear model with the two new variables from the merged data
 new_housing_model <- lm(log_of_ZHVI ~ averageincome + households + State + Metro + SizeRank, data = merged_data)
 summary(new_housing_model)
 
 ```
 
-Compared to the original linear model with only geographical predictors, this model is significantly improved. The Multiple R-squared is at 0.784 and the adjusted is the same. 
+Compared to the original linear model with only geographical predictors, this model is significantly improved. The Multiple R-squared is at 0.763 and the adjusted is the same. 
 
+**CHECK THIS BEFORE SUBMISSION**
 Breaking down coefficients: A 1% increase in the average income corresponds to an increase in the log_ZHVI by about 0.86%. To no surprise coefficients for MD and VA are negative meaning they have a lower log_of_ZHVI compared to the reference state of DC.
 
 ```{r}
@@ -728,7 +809,61 @@ Many interaction terms between log(averageincome) and the State or Metro variabl
 
 These results support the idea that the relationship between income and housing values is not uniform across different areas, and adjusting for these interactions could improve model accuracy.
 
-The multiple and adjusted r-squared are now 0.804.
+The multiple and adjusted r-squared are now 0.789.
+
+
+**More testing for new model without interaction terms**
+```{r}
+# Split into training and testing by year
+#training_data <- subset(merged_data, year %in% c(2021, 2022))
+#testing_data <- subset(merged_data, year == 2023)
+
+# Check for NAs in the testing data
+sum(is.na(testing_data))
+
+# Fit the linear model
+new_housing_model <- lm(log_of_ZHVI ~ averageincome + households + State + Metro + SizeRank, data = training_data)
+
+# Predictions on testing data
+predictions_new <- predict(new_housing_model, newdata = testing_data)
+
+# Actual values and residuals
+actuals_new <- testing_data$log_of_ZHVI
+test_residuals_new <- actuals_new - predictions_new
+
+# Error metrics
+MAE_new <- mean(abs(test_residuals_new))   # Mean Absolute Error
+RMSE_new <- sqrt(mean(test_residuals_new^2)) # Root Mean Squared Error
+R2_new <- cor(predictions_new, actuals_new)^2  # R-squared on test data
+
+cat("MAE:", MAE_new, "\n")
+cat("RMSE:", RMSE_new, "\n")
+cat("R-squared:", R2_new, "\n")
+
+# Scatter plot for Actual vs Predicted Log(ZHVI) for 2023
+plot(
+  testing_data$log_of_ZHVI, predictions_new,
+  xlab = "Actual Log(ZHVI)", ylab = "Predicted Log(ZHVI)",
+  main = "Actual vs Predicted Log(ZHVI) for 2023 (New Model)",
+  pch = 16, col = "blue"
+)
+abline(0, 1, col = "red", lwd = 2) # Add a 45-degree line for perfect prediction
+```
+
+
+
+**Placeholder for regression trees and more**
+
+```{r}
+
+
+
+
+
+
+
+
+```
 
 
 
