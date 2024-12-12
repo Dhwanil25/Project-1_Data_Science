@@ -1,0 +1,20 @@
+---
+title: "Project 2 Writeup"
+date: "2024-12-12"
+author: "Team 7"
+output:
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+```{r}
+housing_data <- read.csv("housingdata.csv")
+```
+
