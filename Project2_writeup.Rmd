@@ -36,10 +36,11 @@ ggplot(housing_data, aes(x = ZHVI)) +
   labs(title = "Histogram of ZHVI", x = "ZHVI", y = "frequency")
 ```
 
-The target variable in our models, ZHVI, doesn't look normally distributed so I'm creating a column with it transformed to look more normally distributed. 
+The target variable in our models, ZHVI, doesn't look normally distributed so before moving forward with modeling it's best to transform it to have it be as normally distributed as possible. We will do that below.
 
 
 ```{r}
+#Create a new column for log transformed ZHVI
 housing_data$log_of_ZHVI <- log(housing_data$ZHVI)
 
 
@@ -51,7 +52,8 @@ ggplot(housing_data, aes(x = log_of_ZHVI))+
 
 ```
 
-After transforming the target variable, we can observe that the variable isn't perfectly distributed, but it's taken a large step in coming as close as possible to being normally distributed as possible. Therefore, we will move forward with the transformation being our target variable.
+After transforming the target variable, we can observe that the variable isn't perfectly distributed, but it's taken a large step in coming as close as possible to being normally distributed as possible. Therefore, we will move forward with the transformation being our target variable in future models.
+
 
 **Preparing predictors to work in models**
 ```{r}
@@ -64,20 +66,71 @@ housing_data$RegionName <- as.factor(housing_data$RegionName)
 housing_data$State <- as.factor(housing_data$State)
 housing_data$Metro <- as.factor(housing_data$Metro)
 housing_data$City <- as.factor(housing_data$City)
+
+#Renaming RegionName to Zipcode since that's what the values of the variable are
+colnames(housing_data)[colnames(housing_data) == "RegionName"] <-"Zipcode"
+
+#Check the results and levels to factoring and renaming
+summary(housing_data)
+str(housing_data)
 ```
+Many of our variables are categorical (not ordinal) variables. We will further discuss the impact this will have later, but for now let's convert these variables to factors of varying levels. The dataset, from Zillow, is mostly comprised of geographical variables of different levels(State, metro area, city, zip code). By levels I mean each variable is a more specific representation than the last. Like how city and states could possibly represent a similar area or have overlap, but city is a more focused area geographically. 
+
+To summarize some key findings we have 43,308 observations with 11 variables now that we've added log of ZHVI and year as variables. Many of the variables we converted into factors have high levels. Namely Zipcode and City. We will later discuss why that isn't good for some of our models later.  
+
 
 
 ```{r}
 
 #Very rough draft of the model (11/18)
-ZHVI_model <- lm(log_of_ZHVI ~ year + State + Metro + RegionName, data = housing_data)
+ZHVI_model <- lm(log_of_ZHVI ~ year + State + Metro + Zipcode + SizeRank, data = housing_data)
 summary(ZHVI_model)
 ```
 
-With the initial model we've built we've changed variables like state, metro, city, and RegionName(zipcode) into factor variables. Our first model is testing what we might find from most of the variables being included in the linear model. The result is a model that's very over fitting. With a mutliple and adjusted R-squared of 0.996 as well as a residual standard error of 0.0393. So our next step is to adjust and simplify the model and ditch the following model.
+```{r}
+#Another model broken into another code chunk because of extensive computation by both models (replacing Zipcode with City)
+ZHVI_model_with_city <- lm(log_of_ZHVI ~ year + State + Metro + City + SizeRank, data = housing_data)
+summary(ZHVI_model_with_city)
+
+```
+
+With the initial model we've built included the changed variables like state, metro, city, and Zipcode into factor variables. Our first model is testing what we might find from most of the variables being included in the linear model. Kind of like backward stepwise feature selection except we aren't including variables like city which we tested on our own time. Based on what we know about these variables, it would be counterintuitive to include all variables since again many of them are geographic. The result could give us multicollinearity and will definetely result in overfitting since the model will be introduced to noise. Not only that, but the computation for the model is quite extensive at least using a laptop it is.
+
+The result for the model with Zipcode is a model that's very over fitting. With a multiple and adjusted R-squared of 0.996 as well as a residual standard error of 0.0393. 
+
+For the second model where we replaced Zipcode with the variable City instead. The reasoning was simply because City had fewer levels than Zipcode. Here we observed a multiple R-squared of 0.9299 and an adjusted R-squared of 0.9283. For this model, it's worth double checking and testing overfitting. We excluded it from our presentation for the sake of the audience's ability to interpret it and model complexity. We will test overfitting below. 
 
 
-**Model 1 - Predicting ZHVI over all three regions as a whole**
+```{r}
+# Perform k-fold cross-validation
+library(caret)
+
+#Remove NAs from ZHVI and log_of_ZHVI
+housing_data_clean <- na.omit(housing_data)
+
+
+set.seed(123)
+cv_results <- train(
+  log_of_ZHVI ~ year + State + Metro + City + SizeRank,
+  data = housing_data_clean,
+  method = "lm",
+  trControl = trainControl(method = "cv", number = 10)
+)
+
+# Print cross-validation results
+print(cv_results)
+
+# Extract the cross-validated R-squared
+cat("Cross-validated R-squared: ", max(cv_results$results$Rsquared), "\n")
+```
+
+The result from running this code is a ton of warnings saying "Warning in predict.lm(modelFit, newdata) :
+  prediction from rank-deficient fit; attr(*, "non-estim") has doubtful cases". The result means we're encountering collinearity issues or if the model has redundant variables which isn't surprising. We did previously discuss how we might get collinearity since variables like city or zipcode will have some overlap in representing some of same area. 
+  
+To add to all this, the model is just going to be more complex than we'd really like. So our next step is to adjust and simplify the model and ditch the following model.
+
+
+**Simple Model 1 - Linear Regression without City or Zipcode**
 
 ```{r}
 #Avoiding factor variables with a large number of levels
