@@ -679,6 +679,11 @@ tree_model2 <- rpart(ZHVI ~ SizeRank, data = train_data2, method = "anova")
 
 rpart.plot(tree_model2, type = 2, extra = 1, main = "Regression Tree for ZHVI ~ SizeRank (VA)")
 
+This part of the code aims to create regression trees for each of the different states. This was done by breaking the code up in
+the separate states to get a better idea of each tree. Once that is done, the ZHVI and sizerank columns were selected to be studied 
+since these give the best insight on the dataset. As you can see in the regression trees, MD and DC have a high amount of complexity
+and branches on the tree. This indicates a high variability across these two states in accordance to sizerank. When looking at VA 
+however, the decsion tree is very simple, which means there is less variability and size rank may not be the best indicator.
 
 
 **Summarized write up and conclusion**
