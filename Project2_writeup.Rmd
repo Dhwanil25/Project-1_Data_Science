@@ -20,6 +20,14 @@ housing_data <- read.csv("housingdata.csv")
 
 **Summarize the most important parts of EDA here**
 
+```{r}
+selected_data <- housing_data[, c("SizeRank", "ZHVI")]
+selected_data <- na.omit(selected_data)
+cor_matrix <- cor(selected_data, use = "complete.obs", method = "pearson")
+corrplot(cor_matrix, addCoef.col = "white")
+```
+A new EDA conducted that makes a correlation diagram between SizeRank and ZHVI
+
 
 
 **Modeling work**
