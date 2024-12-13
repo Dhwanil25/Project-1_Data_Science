@@ -678,6 +678,7 @@ test_data2 <- va_data_clean[-train_index, selected_columns]
 tree_model2 <- rpart(ZHVI ~ SizeRank, data = train_data2, method = "anova")
 
 rpart.plot(tree_model2, type = 2, extra = 1, main = "Regression Tree for ZHVI ~ SizeRank (VA)")
+``` 
 
 This part of the code aims to create regression trees for each of the different states. This was done by breaking the code up in
 the separate states to get a better idea of each tree. Once that is done, the ZHVI and sizerank columns were selected to be studied 
