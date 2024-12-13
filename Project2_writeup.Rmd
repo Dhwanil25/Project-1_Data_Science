@@ -640,6 +640,46 @@ plot(
 abline(0, 1, col = "red", lwd = 2) # Add a 45-degree line for perfect prediction
 ```
 
+```{r}
+library(rpart)
+library(rpart.plot)
+library(caret)
+
+set.seed(123)
+selected_columns <- c("SizeRank", "ZHVI")
+
+train_index <- createDataPartition(dc_data$ZHVI, p = 0.7, list = FALSE)
+
+train_data <- dc_data[train_index, selected_columns]
+test_data <- dc_data[-train_index, selected_columns]
+
+tree_model <- rpart(ZHVI ~ SizeRank, data = train_data, method = "anova")
+
+rpart.plot(tree_model, type = 2, extra = 1, main = "Regression Tree for ZHVI ~ SizeRank (DC)")
+
+set.seed(123)
+md_data_clean <- na.omit(md_data[, c("SizeRank", "ZHVI")]) 
+train_index1 <- createDataPartition(md_data_clean$ZHVI, p = 0.7, list = FALSE)
+
+train_data1 <- md_data_clean[train_index1, selected_columns]
+test_data1 <- md_data_clean[-train_index1, selected_columns]
+
+tree_model1 <- rpart(ZHVI ~ SizeRank, data = train_data1, method = "anova")
+
+rpart.plot(tree_model1, type = 2, extra = 1, main = "Regression Tree for ZHVI ~ SizeRank (MD)")
+
+set.seed(123)
+va_data_clean <- na.omit(va_data[, c("SizeRank", "ZHVI")]) 
+train_index2 <- createDataPartition(va_data_clean$ZHVI, p = 0.7, list = FALSE)
+
+train_data2 <- va_data_clean[train_index, selected_columns]
+test_data2 <- va_data_clean[-train_index, selected_columns]
+
+tree_model2 <- rpart(ZHVI ~ SizeRank, data = train_data2, method = "anova")
+
+rpart.plot(tree_model2, type = 2, extra = 1, main = "Regression Tree for ZHVI ~ SizeRank (VA)")
+
+
 
 **Summarized write up and conclusion**
 
