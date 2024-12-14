@@ -434,17 +434,17 @@ Showing our new scatter plot, we can see that the blue data points are much clos
 
 
 
-#Average ZHVI of dc housing over all 3 years
-mean_dc <- mean(dc_data$ZHVI, na.rm = TRUE)
-mean_dc
+#Using code we group the ZHVIs for each data together by regions/states, DC, MD, and VA
 
-#Average ZHVI of va housing over all 3 years
-mean_va <- mean(va_data$ZHVI, na.rm = TRUE)
-mean_va
 
-#Average ZHVI of md housing over all 3 years
-mean_md <- mean(md_data$ZHVI, na.rm = TRUE)
-mean_md
+dc_data <- subset(housing_data, State == "DC")
+summary(dc_data)
+
+md_data <- subset(housing_data, State == "MD")
+summary(md_data)
+
+va_data <- subset(housing_data, State == "VA")
+summary(va_data)
 
 
 library(rpart)
