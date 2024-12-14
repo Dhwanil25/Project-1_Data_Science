@@ -871,7 +871,6 @@ data by certain years of our dataset we were able to see the predictive power of
 understand the current trends in the housing market by analyzing the data over the past 3 years. We also aim to predict the trends of housing data in the future by modeling it with the 
 dataset. 
 
-
 An interesting interpretation that was drawn from the dataset was that the lower SizeRanks (larger areas) correlated with a higher ZHVI. This was also seen by the fact that the lower 
 Sizeranks were the ones in the Metro areas. This was labeled in the dataset under the Metro column. This interpretation follows the general trend that metropolitan areas tend to be more 
 expensive than suburbs, which holds in the DMV area. When we added the average household income to this dataset from the census dataset, we also found that there was a correlation between 
