@@ -756,7 +756,7 @@ This analysis examines housing price trends from 2021 to 2023 using Zillow Home 
 Additionally, an Urban vs. Rural comparison is conducted. Properties are classified as “Urban” or “Rural” based on their SizeRank (a ranking of market size), with urban areas having smaller ranks. A boxplot illustrates the differences in housing prices between urban and rural areas, highlighting variations in property values across these settings.
 
 This dual analysis helps understand both city-level trends and urban-rural differences in housing prices.
-```
+
 
 
 **Smart Question 2**
@@ -845,7 +845,7 @@ This project analyzes housing price trends in Arlington and Alexandria from 2021
 	4.	Summary Metrics: Key figures such as the current price-to-income ratio and the annual growth rate for each city are displayed to highlight the differences in affordability and housing market performance between Arlington and Alexandria.
 
 These analyses help in understanding market behavior, affordability, and investment potential in the two cities.
-```
+
 
 **Summarized write up and conclusion**
 
