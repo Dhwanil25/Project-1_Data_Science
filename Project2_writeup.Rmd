@@ -849,4 +849,43 @@ These analyses help in understanding market behavior, affordability, and investm
 
 **Summarized write up and conclusion**
 
-Our SMART question was a bit of both inference and prediction. We acknowledge that home value/price data can be very complex in the real world with many factors holding varying influence over the given value of a home. The work we did modeling in this project is direct proof of this. Not only did we use the model to try and determine what exactly influences the value of Zillow home value, but we tried to use the influences we found to test if we can build a model that can decently predict so. By taking our model and splitting training and testing data by certain years of our dataset we were able to see the predictive power of the model by comparing its results with our actual data for 2023. 
+We decided to continue using the same dataset as we analyzed in our first project. This meant that the EDA was largely the same between both projects. One new piece of EDA that was added 
+for the second project was adding a correlation matrix between the Sizerank and ZHVI values. This was important because it added an understanding as to how important this variable was to 
+the ZHVI. Only this variable was used in the correlation matrix since it was the only continuous variable present in the original dataset since all the other variables were either 
+categorical or related to Sizerank. Other important pieces of EDA include evaluating the general trends of ZHVI prices across the different states from year to year. We saw a trend that 
+DC on average had the highest housing prices, followed by Maryland and then Virginia. Housing prices also followed a similar trend between Virginia and Maryland, as there was an increase 
+in average ZHVI value every year. D.C. had a bit of a different trend where it decreased and then increased again. These EDA were important in getting an initial understanding of how the 
+data behaves prior to any other more in-depth analysis done through building models. 
+
+We decided to use linear regression because of the variables that we wanted to use as predictors. A linear regression model allows us to study the effect each variable has on the 
+dependent variable (ZHVI). After looking at the R-squared of the linear regression model, we decided that maybe another model would have a higher R-squared value and better represent the 
+data. We then tried a random forest model to see if it would be a better fit. A random forest model is better suited for more complex data, like our housing dataset, so this model was 
+used. Random forest models generate trees and use bootstrap aggregation to build a model that can handle multiple variables. This model is useful since this bootstrapping method makes 
+sure that the model isn't overfitting. Lastly, we used decision trees to visualize the complexity and variability of the data. Regression trees were used since it was testing between two 
+continuous variables. 
+
+Our SMART question was a bit of both inference and prediction. We acknowledge that home value/price data can be very complex in the real world with many factors holding varying influence 
+over the given value of a home. The work we did modeling in this project is direct proof of this. Not only did we use the model to try and determine what exactly influences the value of 
+Zillow home value, but we also tried to use the influences we found to test if we can build a model that can decently predict so. By taking our model and splitting training and testing 
+data by certain years of our dataset we were able to see the predictive power of the model by comparing its results with our actual data for 2023. Our SMART questions also aimed to 
+understand the current trends in the housing market by analyzing the data over the past 3 years. We also aim to predict the trends of housing data in the future by modeling it with the 
+dataset. 
+
+
+An interesting interpretation that was drawn from the dataset was that the lower SizeRanks (larger areas) correlated with a higher ZHVI. This was also seen by the fact that the lower 
+Sizeranks were the ones in the Metro areas. This was labeled in the dataset under the Metro column. This interpretation follows the general trend that metropolitan areas tend to be more 
+expensive than suburbs, which holds in the DMV area. When we added the average household income to this dataset from the census dataset, we also found that there was a correlation between 
+household income and ZHVI values. This makes sense, as people who make more money would live in more expensive houses, which also translates to a higher ZHVI value. Another interesting 
+finding was how each state had a different variability within ZHVI values. This was seen in our regression trees as MD and DC had a high amount of variation, which resulted in a very 
+complex tree. VA on the other hand, had a very simple tree with only 2 nodes which indicates less variation. The overall trend was very similar since all of the states had an overall 
+increase from 2021 to 2023. These findings were consistent with research conducted by the U.S. Housing Finance Agency that found a similar trend across the United States. 
+
+There could be potential additional analysis that could be done in this study that would improve the analysis. The original dataset only included geographical information, which makes the 
+study simple in its implementation. During the process of this project, we added other measures like number of households and average household income from other datasets to try to test 
+certain non-geographical variables as well. This was a good starting point for understanding indicators of an increase in ZHVI. By adding different variables that would broaden the range 
+of this study, it could be valuable in understanding why housing prices are increasing not just that they are increasing. This would also help with the limitation that this dataset only 
+includes geographical data since it adds different types of data as well. This could also improve the model by further explaining trends in ZHVI changes. 
+
+References 
+U.S. House Prices Rise 5.7 Percent over the Last Year; Up 0.9 Percent from the First Quarter of 2024 | FEDERAL HOUSING FINANCE AGENCY. (2024, August 27). FHFA.gov. 
+https://www.fhfa.gov/news/news-release/u.s.-house-prices-rise-5.7-percent-over-the-last-year-up-0.9-percent-from-the-first-quarter-of-2024
