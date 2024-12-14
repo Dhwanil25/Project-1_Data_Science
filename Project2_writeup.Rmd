@@ -16,27 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 housing_data <- read.csv("housingdata.csv")
 ```
 
-*EDA chart from last time showing ZHVI for each region by year*
-```{r}
-#Plotting ZHVI for each region by year
-library(ggplot2)
 
-#Creating a data frame so all the data is put into one for it to be able to be plotted
-combined_data <- rbind(dc_data, md_data, va_data)
-
-ggplot(combined_data, aes(x = substr(month, 1, 4), y = ZHVI, fill = State)) +
-  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
-  labs(
-    title = "Average Housing Prices (ZHVI) by State/Region Over the Years",
-    x = "Year",
-    y = "Average ZHVI",
-    fill = "State/Region"
-  ) +
-  scale_y_continuous(
-    breaks = seq(200000, 650000, by = 100000)  #Making the scale smaller than the default
-  )
-
-```
 *Summarize the most important parts of EDA here*
 
 From our EDA before, we found the ZHVI to continuously go up year by year for every region in the DMV except for D.C. in between years 2022-2023. Homes in the areas were most expensive in D.C. then Maryland, and then Virginia. 
