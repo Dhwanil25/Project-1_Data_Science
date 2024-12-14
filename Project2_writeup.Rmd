@@ -11,26 +11,42 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-
-
+*Read in dataset*
 ```{r}
 housing_data <- read.csv("housingdata.csv")
 ```
 
-**Summarize the most important parts of EDA here**
-
+*EDA chart from last time showing ZHVI for each region by year*
 ```{r}
-selected_data <- housing_data[, c("SizeRank", "ZHVI")]
-selected_data <- na.omit(selected_data)
-cor_matrix <- cor(selected_data, use = "complete.obs", method = "pearson")
-corrplot(cor_matrix, addCoef.col = "white")
+#Plotting ZHVI for each region by year
+library(ggplot2)
+
+#Creating a data frame so all the data is put into one for it to be able to be plotted
+combined_data <- rbind(dc_data, md_data, va_data)
+
+ggplot(combined_data, aes(x = substr(month, 1, 4), y = ZHVI, fill = State)) +
+  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
+  labs(
+    title = "Average Housing Prices (ZHVI) by State/Region Over the Years",
+    x = "Year",
+    y = "Average ZHVI",
+    fill = "State/Region"
+  ) +
+  scale_y_continuous(
+    breaks = seq(200000, 650000, by = 100000)  #Making the scale smaller than the default
+  )
+
 ```
-A new EDA conducted that makes a correlation diagram between SizeRank and ZHVI
+*Summarize the most important parts of EDA here*
+
+From our EDA before, we found the ZHVI to continuously go up year by year for every region in the DMV except for D.C. in between years 2022-2023. Homes in the areas were most expensive in D.C. then Maryland, and then Virginia. 
+
+Statistical testing confirmed that the difference in ZHVIs between the three regions were significant throughout the 3 years we worked with. 
+
+We also did statistical testing on each region year by year. The result was the difference in ZHVI for D.C. throughout all three years was not statistically significant. The changes in ZHVI for D.C. were not as heavy as both MD and VA. Statistical testing for MD revealed the difference in ZHVI in just Maryland between 2021-2023 was statistically significant. The same result for VA.
 
 
-
-**Modeling work**
+*Modeling work*
 
 
 ```{r}
@@ -47,11 +63,13 @@ ggplot(housing_data, aes(x = ZHVI)) +
 The target variable in our models, ZHVI, doesn't look normally distributed so before moving forward with modeling it's best to transform it to have it be as normally distributed as possible. We will do that below.
 
 
+*Creating log transformed ZHVI*
 ```{r}
 #Create a new column for log transformed ZHVI
 housing_data$log_of_ZHVI <- log(housing_data$ZHVI)
 
 
+library(ggplot2)
 #Result is something that looks more normally distributed
 ggplot(housing_data, aes(x = log_of_ZHVI))+
   geom_histogram(bins = 30, fill = 'green', alpha = 0.7) + 
@@ -63,7 +81,7 @@ ggplot(housing_data, aes(x = log_of_ZHVI))+
 After transforming the target variable, we can observe that the variable isn't perfectly distributed, but it's taken a large step in coming as close as possible to being normally distributed as possible. Therefore, we will move forward with the transformation being our target variable in future models.
 
 
-**Preparing predictors to work in models**
+*Preparing predictors to work in models*
 ```{r}
 #Creating a year variable and making it numeric
 housing_data$year <- substr(housing_data$month, 1, 4)
@@ -87,14 +105,16 @@ Many of our variables are categorical (not ordinal) variables. We will further d
 To summarize some key findings we have 43,308 observations with 11 variables now that we've added log of ZHVI and year as variables. Many of the variables we converted into factors have high levels. Namely Zipcode and City. We will later discuss why that isn't good for some of our models later.  
 
 
-
+*First rough draft of model*
 ```{r}
 
 #Very rough draft of the model (11/18)
 ZHVI_model <- lm(log_of_ZHVI ~ year + State + Metro + Zipcode + SizeRank, data = housing_data)
 summary(ZHVI_model)
 ```
+With the initial model we've built included the changed variables like state, metro, city, and Zipcode into factor variables. Our first model is testing what we might find from most of the variables being included in the linear model. Kind of like backward stepwise feature selection except we aren't including variables like city which we tested on our own time.
 
+*Checking to replace Zipcode with city*
 ```{r}
 #Another model broken into another code chunk because of extensive computation by both models (replacing Zipcode with City)
 ZHVI_model_with_city <- lm(log_of_ZHVI ~ year + State + Metro + City + SizeRank, data = housing_data)
@@ -102,13 +122,13 @@ summary(ZHVI_model_with_city)
 
 ```
 
-With the initial model we've built included the changed variables like state, metro, city, and Zipcode into factor variables. Our first model is testing what we might find from most of the variables being included in the linear model. Kind of like backward stepwise feature selection except we aren't including variables like city which we tested on our own time. Based on what we know about these variables, it would be counterintuitive to include all variables since again many of them are geographic. The result could give us multicollinearity and will definetely result in overfitting since the model will be introduced to noise. Not only that, but the computation for the model is quite extensive at least using a laptop it is.
+Based on what we know about these variables, it would be counterintuitive to include all variables since again many of them are geographic. The result could give us multicollinearity and will definetely result in overfitting since the model will be introduced to noise. Not only that, but the computation for the model is quite extensive at least using a laptop it is.
 
 The result for the model with Zipcode is a model that's very over fitting. With a multiple and adjusted R-squared of 0.996 as well as a residual standard error of 0.0393. 
 
 For the second model where we replaced Zipcode with the variable City instead. The reasoning was simply because City had fewer levels than Zipcode. Here we observed a multiple R-squared of 0.9299 and an adjusted R-squared of 0.9283. For this model, it's worth double checking and testing overfitting. We excluded it from our presentation for the sake of the audience's ability to interpret it and model complexity. We will test overfitting below. 
 
-
+*Checking overfitting of model with city*
 ```{r}
 # Perform k-fold cross-validation
 library(caret)
@@ -135,26 +155,27 @@ cat("Cross-validated R-squared: ", max(cv_results$results$Rsquared), "\n")
 The result from running this code is a ton of warnings saying "Warning in predict.lm(modelFit, newdata) :
   prediction from rank-deficient fit; attr(*, "non-estim") has doubtful cases". The result means we're encountering collinearity issues or if the model has redundant variables which isn't surprising. We did previously discuss how we might get collinearity since variables like city or zipcode will have some overlap in representing some of same area. 
   
-To add to all this, the model is just going to be more complex than we'd really like. So our next step is to adjust and simplify the model and ditch the following model.
+To add to all this, the model is just going to be more complex than we'd really like. So our next step is to adjust and simplify the model.
 
 
-**Simple Model 1 - Linear Regression without City or Zipcode**
+*Simple Model 1 - Linear Regression without City or Zipcode*
 
 ```{r}
 #Avoiding factor variables with a large number of levels
 ZHVI_model_simple <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank, data = housing_data)
 summary(ZHVI_model_simple)
 ```
-After simplifying the model by removing RegionName(zipcode) we see that the r-squared has dropped significantly to 0.576 and the adjusted r-squared is now 0.576. Before checking to make the model even simpler, we want to check the residuals.
+After simplifying the model by removing RegionName(zipcode) we see that the r-squared has dropped significantly to 0.576 and the adjusted r-squared is now 0.576. We believe we can build a model with a stronger predictive power. We also decided to check if maybe we can achieve so by using interactions. The downside is building a model with interaction can lead to more difficulty in interpretation and a higher complexity. Therefore, we have to decide if the trade-off is worth it. We will do so in the next code chunk. 
 
 
-**Check model with the same variables, this time adding interactions**
+*Check model with the same variables, this time adding interactions*
 ```{r}
+#Model this time showing interactions between year and state, year and metro, sizerank and metro
 ZHVI_model_interaction <- lm(log_of_ZHVI ~ year * State + year * Metro + SizeRank * Metro, data = housing_data)
 summary(ZHVI_model_interaction)
 ```
 
-From checking the interaction between predictors like year and state or year and metro among other interactions. The new model explains slightly more variance in the data (60.2%). We still believe there's room for improvement though. 
+From checking the interaction between predictors like year and state or year and metro among other interactions. The new model explains slightly more variance in the data (60.2%). However the adjusted r squared is slightly lower than the multiple r squared meaning we're still being punished for some redundancy or uneeded predictors. We still believe there's room for improvement though. 
 
 Conclusions from interactions: 
 
@@ -167,9 +188,11 @@ SizeRank and Metro interactions were highly significant. Metro areas with larger
 
 With that being said, we want to move forward by keeping the model as simple as possible. We decide that the trade-off between having interaction terms and the increase of our multiple and adjusted r-squared values isn't worth it. We move foward with the linear regression model from before that didn't have interaction terms.
 
-**Checking assumptions of linear regression models from our initial model with 4 predictors no interactions**
+Before moving forward with the initial simple model without interaction terms, we will check the assumptions of linear regression model are satisfied with the simple model.
+
+*Checking assumptions of linear regression models from our initial model with 4 predictors no interactions*
 ```{r}
-#Checking residuals, normality, homoscedacity
+#Checking residuals, normality, homoscedasticity
 
 # Residuals vs. Fitted Values Plot
 plot(ZHVI_model_simple$fitted.values, resid(ZHVI_model_simple),
@@ -191,36 +214,20 @@ abline(h = 0, col = "red")
 ks.test(resid(ZHVI_model_simple), "pnorm", 
         mean = mean(resid(ZHVI_model_simple)), 
         sd = sd(resid(ZHVI_model_simple)))
+
 #Check Homoscedasticity
-install.packages("lmtest") # If not already installed
+install.packages("lmtest") 
 library(lmtest)
 bptest(ZHVI_model_simple)
 
 ```
+From the Asymptotic one sample kolmogorov-smirnov test we can see the test statistic is very low which indicates we're very close to normal distribution which is good. However the p value says the residuals don't follow a normal distribution. This could be due to a number of outliers in the dataset.
+
 Following the residuals vs fitted plot and the q-q plot, we observe there is some heteroscedasticity. The q-q plot also shows there are a few outliers in the dataset. 
 
 This is to be expected since ZHVI was not normally distributed. Taking the log transformation of ZHVI helped, but didn't make it perfectly normally distributed. Let's check the mutlicollinearity. 
 
-**Residuals vs Fitted Plot for model with interaction terms**
-```{r}
-# Step 1: Extract residuals and fitted values
-residuals_interaction <- residuals(ZHVI_model_interaction)
-fitted_values_interaction <- fitted(ZHVI_model_interaction)
-
-# Step 2: Create Residuals vs Fitted plot
-plot(
-  fitted_values_interaction,
-  residuals_interaction,
-  xlab = "Fitted Values",
-  ylab = "Residuals",
-  main = "Residuals vs Fitted (Interaction Model)",
-  pch = 20,
-  col = "blue"
-)
-abline(h = 0, col = "red", lwd = 2) # Add horizontal reference line
-
-```
-
+*Checking simple linear regression model for collinearity*
 ```{r}
 #Checking for Multicollinearity
 install.packages("car")
@@ -232,29 +239,34 @@ vif(ZHVI_model_simple)
 
 Based on the output of the vif stats, we observe that the VIF for all variables is below 5 and is acceptable. We can move forward with adjusting the model based on this. Let us try and test the model by splitting the data by our newly created variable, year. We will train our data on the years 2021 and 2022 and test it on the year 2023. 
 
+*Testing and plotting results for simple linear regression*
 ```{r}
 #Split into training and testing by year
 training_data <- subset(housing_data, year %in% c(2021, 2022))
 testing_data <- subset(housing_data, year == 2023)
 
 ZHVI_model_train <- lm(log_of_ZHVI ~ year + State + Metro + SizeRank, data = training_data)
+
+
 predictions <- predict(ZHVI_model_train, newdata = testing_data)
+valid_actuals<- testing_data$log_of_ZHVI
 
 
+# Filter to only include rows with non-missing valid_actuals
+valid_data <- data.frame(actuals = valid_actuals, predictions = predictions)
+valid_data <- valid_data[!is.na(valid_data$actuals), ]
 
-valid_data <- na.omit(data.frame(actuals, predictions))
-
-
+# Extract filtered actuals and predictions
 valid_actuals <- valid_data$actuals
-valid_predictions <- valid_data$predictions
+predictions <- valid_data$predictions
 
-# Calculate residuals
-valid_residuals <- valid_actuals - valid_predictions
 
-# Compute performance metrics
+# Now calculate performance metrics
+valid_residuals <- valid_actuals - predictions
+
 MAE <- mean(abs(valid_residuals))   # Mean Absolute Error
 RMSE <- sqrt(mean(valid_residuals^2)) # Root Mean Squared Error
-R2 <- cor(valid_predictions, valid_actuals)^2  # R-squared
+R2 <- cor(predictions, valid_actuals)^2  # R-squared
 
 cat("MAE:", MAE, "\n")
 cat("RMSE:", RMSE, "\n")
@@ -262,74 +274,65 @@ cat("R-squared:", R2, "\n")
 
 #Scatter plot
 plot(
-  test_data_2023$log_of_ZHVI, test_data_2023$predicted,
+  valid_actuals, predictions,
   xlab = "Actual Log(ZHVI)", ylab = "Predicted Log(ZHVI)",
   main = "Actual vs Predicted Log(ZHVI) for 2023",
   pch = 16, col = "blue"
 )
 abline(0, 1, col = "red", lwd = 2) # Add a 45-degree line for perfect prediction
-
-# Line plot using ggplot2
-library(ggplot2)
-ggplot(test_data_2023, aes(x = 1:nrow(test_data_2023))) +
-  geom_line(aes(y = log_of_ZHVI, color = "Actual")) +
-  geom_line(aes(y = predicted, color = "Predicted")) +
-  labs(
-    x = "Index",
-    y = "Log(ZHVI)",
-    title = "Trends in Actual vs Predicted Log(ZHVI) for 2023"
-  ) +
-  scale_color_manual(values = c("Actual" = "blue", "Predicted" = "red")) +
-  theme_minimal()
 ```
 To fully test how our model performs on unseen data, we decided to split the data into training and testing sets based on years as mentioned before. As shown above, we gave the years 2021-2022 into the training set and 2023 into the test set to observe how well our model will work on unseen data. The result is the model explains 56% of the variance in log(ZHVI) with a MAE of 0.293 and RMSE of 0.39. 
 
-The results suggest that housing data in the real world can be very complex. Things like income, housing supply, houshold size, crime, and more were not included in the data Zillow provides from their website directly. This could explain the plateu we're witnessing when adding more variables from what we presently have.
+The results suggest that housing data in the real world can be very complex. Things like income, housing supply, household size, crime, and more were not included in the data Zillow provides from their website directly. This could explain the plateu we're witnessing when adding more variables from what we presently have. It's worth testing whether or not other models can perform better. Models that don't require some of the assumptions that were a bit tested in our dataset.
 
 
-**Testing the same on the model with interaction terms**
+*Trying GLS modeling*
 ```{r}
-# Split into training and testing by year
-training_data <- subset(housing_data, year %in% c(2021, 2022))
-testing_data <- subset(housing_data, year == 2023)
+#Doing GLS modeling
+library(nlme)
 
-# Fit the model with interaction terms
-ZHVI_model_interaction_train <- lm(log_of_ZHVI ~ year * State * Metro * SizeRank, data = training_data)
+housing_data_clean<- na.omit(housing_data)
 
-# Make predictions on the testing data
-predictions_interaction <- predict(ZHVI_model_interaction_train, newdata = testing_data)
 
-# Actual values for testing
-actuals_interaction <- testing_data$log_of_ZHVI
+ZHVI_gls_model <- gls(log_of_ZHVI ~ year + State + Metro + SizeRank, data = housing_data_clean)
 
-# Calculate residuals
-test_residuals_interaction <- actuals_interaction - predictions_interaction
-
-# Evaluate performance using MAE, RMSE, and R-squared
-MAE_interaction <- mean(abs(test_residuals_interaction))   # Mean Absolute Error
-RMSE_interaction <- sqrt(mean(test_residuals_interaction^2)) # Root Mean Squared Error
-R2_interaction <- cor(predictions_interaction, actuals_interaction)^2  # R-squared on test data
-
-# Print results
-cat("MAE (Interaction Model):", MAE_interaction, "\n")
-cat("RMSE (Interaction Model):", RMSE_interaction, "\n")
-cat("R-squared (Interaction Model):", R2_interaction, "\n")
-
-# Prepare testing data with predictions for further analysis
-testing_data$predicted <- predictions_interaction
+summary(ZHVI_gls_model)
 ```
+After the presentation, I decided maybe it would make sense to do some GLS modeling to try and account for small violations in the linear regression model assumptions. To my surprise, the RSE was very similar at 0.3837. The GLS model didn't really improve anything off of the simple linear model. Let's try and compare it to rlm.
 
+
+
+*Trying RLM modeling*
+
+```{r}
+#RLM modeling
+# Load MASS package
+library(MASS)
+
+# Fit an RLM model
+ZHVI_rlm_model <- rlm(
+  log_of_ZHVI ~ year + State + Metro + SizeRank,
+  data = housing_data_clean
+)
+
+# Summarize the RLM model
+summary(ZHVI_rlm_model)
+
+AIC(ZHVI_rlm_model)
+BIC(ZHVI_rlm_model)
+```
+The RLM model performs slightly better with an RMSE of 0.3309 an about 0.06 decrease from our previous model in RMSE. Despite this, we still don't have a significantly high variance for the log(ZHVI) being explained even after accounting for the violated assumptions from our linear regression.
 
 To move forward with modeling this dataset, we need to determine the following: 
 
-1. Is linear regression the problem for this dataset? (Is the model type too simple for our dataset)
+1. Is linear regression the problem for this dataset? (Is the model type too simple for our dataset and are violated assumptions too severe)
 
-2. Can we witness a higher r-squared value by using another model type?
-
-3. How can we build a model that has stronger predictive power for our target variable? 
+2. Can we witness stronger predictive power for our target variable? 
 
 Let us test if the linear model itself is the problem by using random forest. Random forest is a bit more suited for complex models than the linear model, so naturally we could expect a better explanation of the variance in our target variable. 
 
+
+*Testing random forest*
 ```{r}
 # Load necessary library for random forest
 library(randomForest)
@@ -370,283 +373,181 @@ importance(rf_model_continuous)
 varImpPlot(rf_model_continuous)
 
 ```
-We observe from the random forest model explains slightly more of the variance, but doesn't really have better metrics in MAE or RMSE. It's possible the data relationships aren't totally linear. We do observe that Metro and State are very important features in explaining log(ZHVI).
+We observe from the random forest model explains slightly more of the variance compared to the linear regression model, but doesn't really have better metrics in MAE or RMSE. We do observe that Metro and State are very important features in explaining log(ZHVI).
 
-What we can conclude from this is that again, housing data in the real world is very complex.
+Similar to the other models, we observe that Metro, State, and Year having significant impacts on the model's prediction power. Metro returning a significantly higher IncNodePurity than the rest. We've included both IncMSE and IncNodePurity plots. IncMSE explains the percentage increase in MSE is when said variable is excluded. As we can see they all have relatively high percentages(above 10%), but Metro has a gap between itself and the other variables.
 
+What we can conclude from this is that again, housing data in the real world is very complex. Even in a model better suited for complex data, we weren't really able to find the explanation in the variance of our target variable that we wanted at just 58%. Again, this ties back to how complex housing data can be and the many different variables that we don't have access to via the Zillow dataset. Metrics like crime, avg size of homes in a given zip code. Or demographics like average income. 
+
+
+After much difficulty in developing a model with better predictive power, I decided to meet with Dr. Blumenthal at Gelman Library to learn how to merge new variables into the existing data we have. The two variables we will focus on is the number of houses in a given zipcode and the average income for a given zipcode. Dr. Blumenthal then gave me the follwing file called "Merged_ZHVI_ZCS.csv". We will dive into the data below.
+
+
+*Merging new variables into our current dataset*
 ```{r}
-library(caret)
+library(dplyr)
 
-training_data_clean <- na.omit(training_data)
+# Load the datasets
+merged_zhvi_acs <- read.csv("Merged_ZHVI_ACS.csv")
+colnames(housing_data)[colnames(housing_data) == "RegionName"] <-"Zipcode"
+colnames(merged_zhvi_acs)[colnames(merged_zhvi_acs) == "zipcode"] <- "Zipcode"
 
-# Set up cross-validation
-tuneGrid <- expand.grid(mtry = c(1, 2, 3, 4))
+# Check column names and preview data to find the common key
+colnames(merged_zhvi_acs)
+colnames(housing_data)
 
-# Train the model using cross-validation
-rf_model_tuned <- train(
-  log_of_ZHVI ~ year + State + Metro + SizeRank,
-  data = training_data_clean,
-  method = "rf",        # Random Forest method
-  trControl = trainControl(method = "cv", number = 5),  # 5-fold cross-validation
-  tuneGrid = tuneGrid,   # Use the tuning grid for mtry
-  importance = TRUE
-)
+#Turn back to character for join
+housing_data$Zipcode <- as.character(housing_data$Zipcode)
+merged_zhvi_acs$Zipcode <- as.character(merged_zhvi_acs$Zipcode)
 
-# Check the best model and performance
-print(rf_model_tuned)
+
+# Perform the left join
+housing_data_updated <- housing_data %>%
+  left_join(merged_zhvi_acs %>% select(Zipcode, averageincome, households),
+            by = "Zipcode")
+
+# Save the updated dataset
+write.csv(housing_data_updated, "housingdata_updated.csv", row.names = FALSE)
+
+
+# Check the summary of the updated dataset
+summary(housing_data_updated)
+
+
+
 ```
 
 
 
-
-```{r}
-
-library(caret)
-
-
-# Set up cross-validation with 10 folds
-train_control <- trainControl(method = "cv", number = 10)
-
-# Fit the model with City included
-model_with_city <- train(log_of_ZHVI ~ year + State + Metro + City, data = housing_data,
-                         method = "lm", trControl = train_control)
-
-# View the results of cross-validation
-print(model_with_city)
-
-
-```
-Result: Error in na.fail.default(list(log_of_ZHVI = c(12.8550329145667, 12.6063557512654,  : 
-  missing values in object
-
-
-```{r}
-library(leaps)
-
-# Forward stepwise selection
-forward_selection <- regsubsets(
-  log_of_ZHVI ~ year + State + Metro + City + SizeRank, # Full set of predictors
-  data = housing_data,        # Your dataset
-  method = "forward",         # Specify forward stepwise selection
-  nvmax = 10                  # Maximum number of predictors to include
-)
-
-# Summary of the forward selection process
-summary_forward <- summary(forward_selection)
-
-# Display the results
-print(summary_forward)
-
-# Get the best model for each number of predictors
-best_models <- summary_forward$which
-print(best_models)
-
-# Plotting the adjusted R-squared to visualize the best number of predictors
-plot(summary_forward$adjr2, type = "b", xlab = "Number of Predictors", ylab = "Adjusted R-squared")
-
-```
-
-```{r}
-forward_model_with_city <- regsubsets(
-    log_of_ZHVI ~ year + State + Metro + SizeRank + City,
-    data = housing_data,
-    nvmax = 12,  # Adjust if you want to limit the number of predictors
-    method = "forward"
-)
-summary_forward_city <- summary(forward_model_with_city)
-
-coef(forward_model_with_city, which.max(summary_forward_city$adjr2))
-```
-
-After testing  this, we can observe that overfitting is a problem with models of this dataset. Many of the variables given to us in this dataset are geographical. So for example, state, city, metro, and zipcode are all geographical measures of different degrees. Including all, or certain variables with a high number of levels introduces our model to noise and leads to overcomplexity and overfitting. 
-
-
-```{r}
-library(caret)
-library(ggplot2)
-library(lattice)
-
-housing_data_clean <- na.omit(housing_data)
-
-
-control <- trainControl(method = "cv", number = 10)  # 10-fold cross-validation
-
-
-
-model_with_city <- train(log_of_ZHVI ~ year + State + Metro + City, 
-                         data = housing_data_clean, 
-                         method = "lm", 
-                         trControl = control)
-
-model_without_city <- train(log_of_ZHVI ~ year + State + Metro, 
-                             data = housing_data_clean, 
-                             method = "lm", 
-                             trControl = control)
-
-
-print(model_with_city)
-print(model_without_city)
-```
-Code took forever to run further proving that many of the variables with an incredibly high level of factors have led to longer computation times, overfitting, and more model complexity.
-
-
-
-
-```{r}
-# Model with City
-summary(lm(log_of_ZHVI ~ year + State + Metro + City, data = housing_data))
-
-# Model without City
-summary(lm(log_of_ZHVI ~ year + State + Metro, data = housing_data))
-
-```
-
-Result: The model with city had a multiple R-squared of 0.93 and an adjusted R-squared of 0.928. It also returned "5 not defined because of singularities". Given the many levels of some of the variables, it might be better to just simplify the model.
-
-```{r}
-# Load the car package
-library(car)
-
-# Fit the linear model
-housing_model <- lm(log_of_ZHVI ~ year + State + Metro + City, data = housing_data)
-
-# Calculate VIF for each predictor
-vif_values <- vif(housing_model)
-
-# View the VIF values
-print(vif_values)
-```
-
-Testing for multicollinearity in this model with City included we get the error "there are aliased coefficients in the model". An error that occurs when there is perfrect multicollinearity in the model.
-
-```{r}
-housing_data <- na.omit(housing_data)
-
-
-# Split the data into training and testing sets
-set.seed(123)  # Set seed for reproducibility
-trainIndex <- createDataPartition(housing_data$log_of_ZHVI, p = 0.8, list = FALSE)
-train_data <- housing_data[trainIndex, ]
-test_data <- housing_data[-trainIndex, ]
-
-# Load necessary libraries
-library(caret)
-library(glmnet)
-
-# Set up cross-validation control
-control <- trainControl(method = "cv", number = 10)  # 10-fold cross-validation
-
-# Ridge regression model (L2 regularization)
-model_ridge <- train(log_of_ZHVI ~ year + State + Metro + City, 
-                     data = train_data,  # Use the training set
-                     method = "glmnet", 
-                     trControl = control, 
-                     tuneGrid = expand.grid(alpha = 0, lambda = seq(0.0001, 1, length = 100)))
-
-# Print model results
-print(model_ridge)
-```
-
-
-Based on the many different steps we've tried by now, we can see many of our variables we thought would contribute meaningfully to our linear model has led to problems in overfitting, complexity, and computation. So we decided maybe to take a different approach and add some variables Zillow didn't give to us before. 
-
-
-```{r}
-# Load ACS data and your housing dataset
-acs_data <- read.csv("Merged_ZHVI_ACS.csv")
-housing_data <- read.csv("C:/Users/shime/Downloads/zhvi-all-homes_md-va-dc_2021-2023.csv")
-
-# Convert 'zhvi' in ACS data: Remove '$' and commas, then convert to numeric
-acs_data$zhvi <- as.numeric(gsub("[\\$,]", "", acs_data$zhvi))
-
-# Ensure 'RegionName' in housing_data matches 'zipcode' in acs_data
-housing_data$RegionName <- as.character(housing_data$RegionName)
-acs_data$zipcode <- as.character(acs_data$zipcode)
-
-# Merge datasets using 'RegionName' and 'zipcode' as the key
-merged_data <- merge(housing_data, acs_data, by.x = "RegionName", by.y = "zipcode", all.x = TRUE)
-
-# Feature Engineering: Add derived variables
-merged_data$income_per_household <- merged_data$averageincome / merged_data$households
-#Check if average_income is skewed
-hist(merged_data$averageincome, main = "Histogram of Average Income", xlab = "Average Income")
-merged_data$log_averageincome <- log(merged_data$averageincome)
-
-# Save the enhanced dataset
-write.csv(merged_data, "enhanced_housing_data.csv", row.names = FALSE)
-
-```
-
-We have merged data from ACS(American Community Survey) under the U.S. Census Bureau to bring in two new variables in our dataset. The variables we will be focusing on are the average household income in a given zipcode and the number of homes in a given zip code. Each of the variables aren't monitored monthly like the ZHVI data we had. Another problem is that the variables only go up until 2022. The data for 2023 isn't readily available yet at the time of writing.
+We have merged data from ACS(American Community Survey) under the U.S. Census Bureau to bring in two new variables in our dataset. The variables we will be focusing on are the average household income(averageincome) in a given zipcode and the number of homes in a given zip code(households). Each of the variables aren't monitored monthly like the ZHVI data we had. Another problem is that the variables only go up until 2022. The data for 2023 isn't readily available yet at the time of writing.
 
 The goal in adding these variables is for more of the variance in log(ZHVI) to be explained. From the context of housing as a topic, we know supply is said to have an impact on price as well as average household income. 
 
 Modeling should check if these variabels are statistically significant and if they have strong coefficneints/impacts on the target variable.
 
-
+*New linear modeling with updated variables*
 ```{r}
+
+housing_data_updated$log_of_ZHVI <- log(housing_data_updated$ZHVI)
+
+#Check dataset
+summary(housing_data_updated)
+
 #Building the new linear model with the two new variables from the merged data
-new_housing_model <- lm(log_of_ZHVI ~ averageincome + households + State + Metro + SizeRank, data = merged_data)
+new_housing_model <- lm(log_of_ZHVI ~ year+ averageincome + households + State + Metro + SizeRank, data = housing_data_updated)
 summary(new_housing_model)
 
 ```
 
-Compared to the original linear model with only geographical predictors, this model is significantly improved. The Multiple R-squared is at 0.763 and the adjusted is the same. 
+Compared to the original linear model with only geographical predictors, this model is significantly improved. The Multiple R-squared is at 0.77 and the adjusted is the same. Now that we've come up with a linear regression model that's more accurate, let's dive into some of the coefficients. 
 
-**CHECK THIS BEFORE SUBMISSION**
-Breaking down coefficients: A 1% increase in the average income corresponds to an increase in the log_ZHVI by about 0.86%. To no surprise coefficients for MD and VA are negative meaning they have a lower log_of_ZHVI compared to the reference state of DC.
+The most surprising is that the coefficient for year is negative showing for each additional year, log of ZHVI decreases, meaning the growth of ZHVI is growing at a diminishing rate. WIth a coefficient of 0.056.
 
+Breaking down coefficients: A dollar increase in the average income corresponds to an increase in the log_ZHVI by about 0.0000084. This might seem insignificant, but it's important since average household income increases are typically measured in thousands of dollars. 
+
+To no surprise coefficients for MD and VA are negative meaning they have a lower log_of_ZHVI compared to the reference state of DC. Specifically there's a 25.4% decrease in ZHVI compared to the reference of DC. For virginia it's actually 24.7% compared to DC. Holding all other variables constant. 
+
+Diving into metro coefficients. Our most expensive metro area (highest coefficient compared to reference), was actually Baltimore-Columbia-Towson to our surprise with a coefficient suggesting a 33% increase in ZHVI compared to reference. The lowest (strong negative coefficient) was Big Stone Gap, VA metro area. For reference the town has a population of just over 5,000 according to google. The coefficient suggests a 53% decrease in ZHVI compared to the reference metro area.
+
+SizeRank wasn't a strong coefficient at all. A decrease in Sizerank value (number closer to 1), means log(ZHVI) decreases by 0.00029%
+
+Also, households wasn't significant at all either. The p-value was above 0.05. We've also plotted a linear regression model with interaction terms, but it's much harder to interpret, so we didn't present it. Also, the rsquared only increases with said interactions by about 0.03.
+
+*Doing interaction terms with new model*
 ```{r}
-interaction_model <- lm(log_of_ZHVI ~ averageincome * households + averageincome * State + averageincome * Metro + SizeRank, data = merged_data)
+interaction_model <- lm(log_of_ZHVI ~ averageincome * households + averageincome * State + averageincome * Metro + SizeRank, data = housing_data_updated)
 summary(interaction_model)
 ```
 
-The interaction term between log(averageincome) and households is significant, with a p-value of 1.5e-06. This suggests that the relationship between average income and ZHVI may depend on the number of households.
+The interaction term between averageincome and households is significant, with a p-value of less than 2e-16. This suggests that the relationship between average income and ZHVI may depend on the number of households.
 
-Many interaction terms between log(averageincome) and the State or Metro variables are also significant, indicating that the effect of income on ZHVI differs across various regions and metros.
+The interaction term of average income and MD suggests the effect of average income isn't as strongly positive as other states in our data. The interaction terms do have significace though given their p-values.
 
-These results support the idea that the relationship between income and housing values is not uniform across different areas, and adjusting for these interactions could improve model accuracy.
-
-The multiple and adjusted r-squared are now 0.789.
+The multiple and adjusted r-squared are now 0.79. Now let's test the model.
 
 
-**More testing for new model without interaction terms**
+*Testing the same way with a scatterplot like the first simple model*
 ```{r}
-# Split into training and testing by year
-#training_data <- subset(merged_data, year %in% c(2021, 2022))
-#testing_data <- subset(merged_data, year == 2023)
+# Split the data into training (2021-2022) and testing (2023)
+training_data <- subset(housing_data_updated, year %in% c(2021, 2022))
+testing_data <- subset(housing_data_updated, year == 2023)
 
-# Check for NAs in the testing data
-sum(is.na(testing_data))
-
-# Fit the linear model
-new_housing_model <- lm(log_of_ZHVI ~ averageincome + households + State + Metro + SizeRank, data = training_data)
+# Fit the model on the training data
+new_housing_model <- lm(log_of_ZHVI ~ averageincome * households + averageincome * State + averageincome * Metro + SizeRank, data = training_data)
 
 # Predictions on testing data
 predictions_new <- predict(new_housing_model, newdata = testing_data)
 
-# Actual values and residuals
+# Actual values from the testing data
 actuals_new <- testing_data$log_of_ZHVI
-test_residuals_new <- actuals_new - predictions_new
 
-# Error metrics
-MAE_new <- mean(abs(test_residuals_new))   # Mean Absolute Error
-RMSE_new <- sqrt(mean(test_residuals_new^2)) # Root Mean Squared Error
-R2_new <- cor(predictions_new, actuals_new)^2  # R-squared on test data
+# Plot Actual vs Predicted with 45-degree line
+plot(actuals_new, predictions_new,
+     xlab = "Actual Log(ZHVI)", ylab = "Predicted Log(ZHVI)",
+     main = "Actual vs Predicted Log(ZHVI) - Test Data (2023)",
+     pch = 16, col = "blue")
 
-cat("MAE:", MAE_new, "\n")
-cat("RMSE:", RMSE_new, "\n")
-cat("R-squared:", R2_new, "\n")
+# Add the 45-degree line (perfect prediction)
+abline(0, 1, col = "red", lwd = 2)  # 45-degree line for perfect predictions
+```
+Showing our new scatter plot, we can see that the blue data points are much closer to the red horizontal line reflecting a perfect prediction compared to our simple linear model that didn't have our new ACS variables.
 
-# Scatter plot for Actual vs Predicted Log(ZHVI) for 2023
+Let's be sure by taking one last step with random forest modeling with our new variables. 
+
+```{r}
+
+library(randomForest)
+library(caret)
+
+# Split the data into training and testing sets (for example, training on years 2021 and 2022, and testing on 2023)
+training_data <- subset(housing_data_updated, year %in% c(2021, 2022))
+testing_data <- subset(housing_data_updated, year == 2023)
+
+# Remove rows with missing values
+training_data <- na.omit(training_data)
+testing_data <- na.omit(testing_data)
+
+# Train the Random Forest model with log_of_ZHVI as the target variable and the rest as features
+new_rf_model <- randomForest(log_of_ZHVI ~ year + State + Metro + SizeRank + averageincome + households, 
+                         data = training_data, 
+                         importance = TRUE)
+
+# Print model summary
+print(new_rf_model)
+
+# Make predictions on the testing data
+rf_predictions <- predict(new_rf_model, newdata = testing_data)
+
+# Calculate residuals
+rf_residuals <- testing_data$log_of_ZHVI - rf_predictions
+
+# Compute performance metrics
+MAE_rf <- mean(abs(rf_residuals))   # Mean Absolute Error
+RMSE_rf <- sqrt(mean(rf_residuals^2)) # Root Mean Squared Error
+R2_rf <- cor(rf_predictions, testing_data$log_of_ZHVI)^2  # R-squared
+
+cat("MAE (Random Forest):", MAE_rf, "\n")
+cat("RMSE (Random Forest):", RMSE_rf, "\n")
+cat("R-squared (Random Forest):", R2_rf, "\n")
+
+# Plot Feature Importance
+importance(new_rf_model)
+varImpPlot(new_rf_model)  # Visualize variable importance
+
+# Optionally, plot actual vs predicted for the Random Forest model
 plot(
-  testing_data$log_of_ZHVI, predictions_new,
+  testing_data$log_of_ZHVI, rf_predictions,
   xlab = "Actual Log(ZHVI)", ylab = "Predicted Log(ZHVI)",
-  main = "Actual vs Predicted Log(ZHVI) for 2023 (New Model)",
+  main = "Actual vs Predicted Log(ZHVI) for 2023 (Random Forest)",
   pch = 16, col = "blue"
 )
 abline(0, 1, col = "red", lwd = 2) # Add a 45-degree line for perfect prediction
+
+
 ```
+
+Based on the new MAE, RMSE, and R-squared we see the new variables also helped the random forest model in comparison with the first random forest models we did.
+
 
 ```{r}
 library(rpart)
@@ -692,206 +593,35 @@ This part of the code aims to create regression trees for each of the different 
 the separate states to get a better idea of each tree. Once that is done, the ZHVI and sizerank columns were selected to be studied 
 since these give the best insight on the dataset. As you can see in the regression trees, MD and DC have a high amount of complexity
 and branches on the tree. This indicates a high variability across these two states in accordance to sizerank. When looking at VA 
-however, the decsion tree is very simple, which means there is less variability and size rank may not be the best indicator.
+however, the decision tree is very simple, which means there is less variability and size rank may not be the best indicator.
 
-**Smart Question 1** 
----
-title: "Housing Price Analysis (2021-2023)"
-author: "Sagar Shah"
-date: "`r Sys.Date()`"
-output: html_document
----
-
-```{r, warning=FALSE, message=FALSE}
-# Load necessary libraries
-library(ggplot2)
-library(dplyr)
-library(lubridate)
-
-# Load the data
-file_path <- "~/Documents/Introduction To Data Science /zhvi-all-homes_md-va-dc_2021-2023.csv"
-df <- read.csv(file_path)
-
-# Convert 'month' column to Date
-df$month <- as.Date(df$month)
-
-# Cities to analyze
-cities <- c("Washington", "Baltimore", "Richmond", "Alexandria")
-
-# Plot housing price trends for the selected cities
-for (city in cities) {
-  city_data <- df %>% filter(City == city)
-  plot <- ggplot(city_data, aes(x = month, y = ZHVI)) +
-    geom_line(color = "blue") +
-    labs(
-      title = paste("Housing Price Trend in", city, "(2021-2023)"),
-      x = "Date",
-      y = "Zillow Home Value Index (ZHVI)"
-    ) +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  print(plot)
-}
-
-# Urban vs Rural comparison
-median_rank <- median(df$SizeRank, na.rm = TRUE)
-df <- df %>%
-  mutate(Urban = ifelse(SizeRank <= median_rank, "Urban", "Rural"))
-
-ggplot(df, aes(x = Urban, y = ZHVI)) +
-  geom_boxplot() +
-  labs(
-    title = "Urban vs Rural Housing Price Variation",
-    x = "",
-    y = "Zillow Home Value Index (ZHVI)"
-  ) +
-  scale_x_discrete(labels = c("Rural", "Urban")) +
-  theme_minimal()
-
-```
-Housing Price Analysis (2021-2023) Project Overview:
-
-This analysis examines housing price trends from 2021 to 2023 using Zillow Home Value Index (ZHVI) data. The study focuses on key cities — Washington, Baltimore, Richmond, and Alexandria — to visualize price movements over time. Each city’s ZHVI is plotted to reveal trends and fluctuations.
-
-Additionally, an Urban vs. Rural comparison is conducted. Properties are classified as “Urban” or “Rural” based on their SizeRank (a ranking of market size), with urban areas having smaller ranks. A boxplot illustrates the differences in housing prices between urban and rural areas, highlighting variations in property values across these settings.
-
-This dual analysis helps understand both city-level trends and urban-rural differences in housing prices.
-
-
-
-**Smart Question 2**
----
-title: "Housing Price Analysis (2021-2023)"
-author: "Sagar Shah"
-date: "`r Sys.Date()`"
-output: html_document
----
-
-```{r}
-# Load necessary libraries
-library(readr)
-library(dplyr)
-library(ggplot2)
-library(lubridate)
-
-# Load the data
-file_path <- "~/Documents/Introduction To Data Science /zhvi-all-homes_md-va-dc_2021-2023.csv"
-df <- read.csv(file_path)
-
-# Convert 'month' column to Date type
-df$month <- as.Date(df$month)
-
-# Specify the cities you want to analyze
-selected_cities <- c('Arlington', 'Alexandria')  # Add a second city here
-
-# Filter data for the selected cities
-city_data <- df %>%
-  filter(City %in% selected_cities)
-
-# Calculate rate of change in housing prices for each city
-city_data <- city_data %>%
-  group_by(City) %>%
-  arrange(month) %>%
-  mutate(ZHVI_pct_change = c(NA, diff(ZHVI) / head(ZHVI, -1)))
-
-# Plot rate of change for both cities
-ggplot(city_data, aes(x = month, y = ZHVI_pct_change, color = City)) +
-  geom_line() +
-  ggtitle('Monthly Rate of Change in Housing Prices') +
-  xlab('Date') +
-  ylab('Percentage Change') +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-# Calculate average annual growth rate for each city
-growth_rates <- city_data %>%
-  group_by(City) %>%
-  summarize(
-    total_growth = (last(ZHVI) / first(ZHVI)) - 1,
-    years = as.numeric(difftime(max(month), min(month), units = "days")) / 365,
-    annual_growth_rate = (1 + total_growth)^(1 / years) - 1
-  )
-
-# Print annual growth rates
-growth_rates %>%
-  mutate(annual_growth_rate_pct = annual_growth_rate * 100) %>%
-  select(City, annual_growth_rate_pct) %>%
-  print()
-
-# Housing affordability relative to median income
-median_income <- 75000  # Replace with actual median income (assume the same for both cities)
-
-city_data <- city_data %>%
-  mutate(price_to_income_ratio = ZHVI / median_income)
-
-# Plot price-to-income ratio for both cities
-ggplot(city_data, aes(x = month, y = price_to_income_ratio, color = City)) +
-  geom_line() +
-  ggtitle('Housing Affordability (Price-to-Income Ratio)') +
-  xlab('Date') +
-  ylab('Price-to-Income Ratio') +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-# Print current price-to-income ratio for each city
-current_ratios <- city_data %>%
-  group_by(City) %>%
-  summarize(current_price_to_income_ratio = last(price_to_income_ratio))
-
-print(current_ratios)
-```
-This project analyzes housing price trends in Arlington and Alexandria from 2021 to 2023. Key components include:
-	1.	Rate of Change in Housing Prices: The monthly percentage change in Zillow Home Value Index (ZHVI) is calculated for both cities. A line plot visualizes these changes over time, allowing for comparison of market volatility between the two cities.
-	2.	Annual Growth Rate: The total growth in housing prices from 2021 to 2023 is used to compute the average annual growth rate for each city. This helps identify long-term trends in property appreciation.
-	3.	Housing Affordability (Price-to-Income Ratio): The price-to-income ratio, calculated as ZHVI divided by a median income of $75,000, shows how affordable housing is relative to local income. This metric is plotted over time for each city, providing insight into affordability trends.
-	4.	Summary Metrics: Key figures such as the current price-to-income ratio and the annual growth rate for each city are displayed to highlight the differences in affordability and housing market performance between Arlington and Alexandria.
-
-These analyses help in understanding market behavior, affordability, and investment potential in the two cities.
 
 
 **Summarized write up and conclusion**
 
-We decided to continue using the same dataset as we analyzed in our first project. This meant that the EDA was largely the same between both projects. One new piece of EDA that was added 
-for the second project was adding a correlation matrix between the Sizerank and ZHVI values. This was important because it added an understanding as to how important this variable was to 
-the ZHVI. Only this variable was used in the correlation matrix since it was the only continuous variable present in the original dataset since all the other variables were either 
-categorical or related to Sizerank. Other important pieces of EDA include evaluating the general trends of ZHVI prices across the different states from year to year. We saw a trend that 
-DC on average had the highest housing prices, followed by Maryland and then Virginia. Housing prices also followed a similar trend between Virginia and Maryland, as there was an increase 
-in average ZHVI value every year. D.C. had a bit of a different trend where it decreased and then increased again. These EDA were important in getting an initial understanding of how the 
-data behaves prior to any other more in-depth analysis done through building models. 
+We decided to continue using the same dataset as we analyzed in our first project. This meant that the EDA was largely the same between both projects. Important pieces of EDA include evaluating the general trends of ZHVI prices across the different states from year to year. We saw a trend that DC on average had the highest housing prices, followed by Maryland and then Virginia. Housing prices also followed a similar trend between Virginia and Maryland, as there was an increase in average ZHVI value every year. D.C. had a bit of a different trend where it increased and then decreased. These EDA were important in getting an initial understanding of how the data behaves prior to any other more in-depth analysis done through building models. 
 
-We decided to use linear regression because of the variables that we wanted to use as predictors. A linear regression model allows us to study the effect each variable has on the 
-dependent variable (ZHVI). After looking at the R-squared of the linear regression model, we decided that maybe another model would have a higher R-squared value and better represent the 
-data. We then tried a random forest model to see if it would be a better fit. A random forest model is better suited for more complex data, like our housing dataset, so this model was 
-used. Random forest models generate trees and use bootstrap aggregation to build a model that can handle multiple variables. This model is useful since this bootstrapping method makes 
-sure that the model isn't overfitting. Lastly, we used decision trees to visualize the complexity and variability of the data. Regression trees were used since it was testing between two 
-continuous variables. 
+We decided to use linear regression because of the variables that we wanted to use as predictors. A linear regression model allows us to study the effect each variable has on the dependent variable (ZHVI). After looking at the R-squared of the linear regression model, we decided that maybe another model would have a higher R-squared value and better represent the 
+data. We then tried a random forest model to see if it would be a better fit. A random forest model is better suited for more complex data, like our housing dataset. Despite this, we didn't have much more variance explained than our linear regression model. After making changes and adding new variables, we were able to boost the predictive power of our linear regression model. The random forest model we built with the new variables was also included, but computation was extensive leading us to continue using linear regression.(Random Forest was included to display it's) 
 
-Our SMART question was a bit of both inference and prediction. We acknowledge that home value/price data can be very complex in the real world with many factors holding varying influence 
-over the given value of a home. The work we did modeling in this project is direct proof of this. Not only did we use the model to try and determine what exactly influences the value of 
-Zillow home value, but we also tried to use the influences we found to test if we can build a model that can decently predict so. By taking our model and splitting training and testing 
-data by certain years of our dataset we were able to see the predictive power of the model by comparing its results with our actual data for 2023. Our SMART questions also aimed to 
-understand the current trends in the housing market by analyzing the data over the past 3 years. We also aim to predict the trends of housing data in the future by modeling it with the 
-dataset. 
+Our SMART question was a bit of both inference and prediction. We acknowledge that home value/price data can be very complex in the real world with many factors holding varying influence over the given value of a home. The work we did modeling in this project is direct proof of this. Not only did we use the model to try and determine what exactly influences the value of 
+Zillow home value, but we also tried to use the influences we found to test if we can build a model that can decently predict so. By taking our model and splitting training and testing data by certain years of our dataset we were able to see the predictive power of the model by comparing its results with our actual data for 2023. Our SMART questions also aimed to 
+understand the current trends in the housing market by analyzing the data over the past 3 years. 
 
-An interesting interpretation that was drawn from the dataset was that the lower SizeRanks (larger areas) correlated with a higher ZHVI. This was also seen by the fact that the lower 
-Sizeranks were the ones in the Metro areas. This was labeled in the dataset under the Metro column. This interpretation follows the general trend that metropolitan areas tend to be more 
-expensive than suburbs, which holds in the DMV area. When we added the average household income to this dataset from the census dataset, we also found that there was a correlation between 
-household income and ZHVI values. This makes sense, as people who make more money would live in more expensive houses, which also translates to a higher ZHVI value. Another interesting 
-finding was how each state had a different variability within ZHVI values. This was seen in our regression trees as MD and DC had a high amount of variation, which resulted in a very 
-complex tree. VA on the other hand, had a very simple tree with only 2 nodes which indicates less variation. The overall trend was very similar since all of the states had an overall 
-increase from 2021 to 2023. These findings were consistent with research conducted by the U.S. Housing Finance Agency that found a similar trend across the United States. 
+An interesting interpretation that was drawn from the dataset was that the lower SizeRanks (larger areas) correlated with a higher ZHVI, but not by much. This was also seen by the fact that the lower Sizeranks were the ones in more expensive Metro areas. This was labeled in the dataset under the Metro column. This interpretation follows the general trend that metropolitan areas tend to be more expensive than suburbs or rural areas, which holds in the DMV area. When we added the average household income to this dataset from the census dataset, we also found that there was a correlation between household income and ZHVI values. This makes sense, as people who make more money would live in more expensive houses, which also translates to a higher ZHVI value. Another interesting finding was how each state had a different variability within ZHVI values. This was seen in our regression trees as MD and DC had a high amount of variation, which resulted in a very complex tree. VA on the other hand, had a very simple tree with only 2 nodes which indicates less variation. The overall trend was very similar since all of the states had an overall increase from 2021 to 2023. These findings were consistent with research conducted by the U.S. Housing Finance Agency that found a similar trend across the United States. 
 
-There could be potential additional analysis that could be done in this study that would improve the analysis. The original dataset only included geographical information, which makes the 
-study simple in its implementation. During the process of this project, we added other measures like number of households and average household income from other datasets to try to test 
-certain non-geographical variables as well. This was a good starting point for understanding indicators of an increase in ZHVI. By adding different variables that would broaden the range 
-of this study, it could be valuable in understanding why housing prices are increasing not just that they are increasing. This would also help with the limitation that this dataset only 
-includes geographical data since it adds different types of data as well. This could also improve the model by further explaining trends in ZHVI changes. 
+There could be potential additional analysis that could be done in this study that would improve the analysis. The original dataset only included geographical information, which makes the study simple in its implementation. During the process of this project, we added other measures like number of households and average household income from other datasets to try to test 
+certain non-geographical variables as well. This was a good starting point for understanding indicators of an increase or decrease in ZHVI. By adding different variables that would broaden the range of this study, it could be valuable in understanding why housing prices are increasing not just that they are increasing. This would also help with the limitation that this dataset only includes geographical data since it adds different types of data as well. This could also improve the model by further explaining trends in ZHVI changes. The data we added also has its limitations. As ACS data for 2023 wasn't released yet. The model is pretty good and the results are quite reliable given the subject of our data, still non-geographic predictors like crime, sq feet, could improve it.
 
-In conclusion, our project was designed to the recent trends in housing prices in the DMV. This was done by looking at the Zillow dataset that showed the ZHVI values for corresponding 
-areas in the DMV area. The ZHVI value is a number generated by Zillow that gives an estimate of the housing values in an area. In our study, we used logistic regression models, random 
+In conclusion, our project was designed to the recent trends in housing prices in the DMV. This was done by looking at the Zillow dataset that showed the ZHVI values for corresponding areas in the DMV area. The ZHVI value is a number generated by Zillow that gives an estimate of the housing values in an area. In our study, we used logistic regression models, random 
 forest models, regression trees, and many different types of explanatory data analysis to try to determine the effect of different variables on ZHVI value. Other variables were also added 
 through the process of the project to get a more holistic view of the trends. We found that overall housing prices in the DMV are increasing and that Sizerank and housing income are just 
 some of the variables that can produce a good model for changes in ZHVI value. Further analysis could be done in the future to continue making this model more reliable like adding 
 different variables that could explain ZHVI.
 
-References 
+*References*
+
 U.S. House Prices Rise 5.7 Percent over the Last Year; Up 0.9 Percent from the First Quarter of 2024 | FEDERAL HOUSING FINANCE AGENCY. (2024, August 27). FHFA.gov. 
 https://www.fhfa.gov/news/news-release/u.s.-house-prices-rise-5.7-percent-over-the-last-year-up-0.9-percent-from-the-first-quarter-of-2024
+
+US Census Bureau. (2021). American Community Survey (ACS). Census.gov. https://www.census.gov/programs-surveys/acs
