@@ -20,6 +20,14 @@ housing_data <- read.csv("housingdata.csv")
 
 **Summarize the most important parts of EDA here**
 
+```{r}
+selected_data <- housing_data[, c("SizeRank", "ZHVI")]
+selected_data <- na.omit(selected_data)
+cor_matrix <- cor(selected_data, use = "complete.obs", method = "pearson")
+corrplot(cor_matrix, addCoef.col = "white")
+```
+A new EDA conducted that makes a correlation diagram between SizeRank and ZHVI
+
 
 
 **Modeling work**
@@ -640,7 +648,250 @@ plot(
 abline(0, 1, col = "red", lwd = 2) # Add a 45-degree line for perfect prediction
 ```
 
+```{r}
+library(rpart)
+library(rpart.plot)
+library(caret)
+
+set.seed(123)
+selected_columns <- c("SizeRank", "ZHVI")
+
+train_index <- createDataPartition(dc_data$ZHVI, p = 0.7, list = FALSE)
+
+train_data <- dc_data[train_index, selected_columns]
+test_data <- dc_data[-train_index, selected_columns]
+
+tree_model <- rpart(ZHVI ~ SizeRank, data = train_data, method = "anova")
+
+rpart.plot(tree_model, type = 2, extra = 1, main = "Regression Tree for ZHVI ~ SizeRank (DC)")
+
+set.seed(123)
+md_data_clean <- na.omit(md_data[, c("SizeRank", "ZHVI")]) 
+train_index1 <- createDataPartition(md_data_clean$ZHVI, p = 0.7, list = FALSE)
+
+train_data1 <- md_data_clean[train_index1, selected_columns]
+test_data1 <- md_data_clean[-train_index1, selected_columns]
+
+tree_model1 <- rpart(ZHVI ~ SizeRank, data = train_data1, method = "anova")
+
+rpart.plot(tree_model1, type = 2, extra = 1, main = "Regression Tree for ZHVI ~ SizeRank (MD)")
+
+set.seed(123)
+va_data_clean <- na.omit(va_data[, c("SizeRank", "ZHVI")]) 
+train_index2 <- createDataPartition(va_data_clean$ZHVI, p = 0.7, list = FALSE)
+
+train_data2 <- va_data_clean[train_index, selected_columns]
+test_data2 <- va_data_clean[-train_index, selected_columns]
+
+tree_model2 <- rpart(ZHVI ~ SizeRank, data = train_data2, method = "anova")
+
+rpart.plot(tree_model2, type = 2, extra = 1, main = "Regression Tree for ZHVI ~ SizeRank (VA)")
+``` 
+
+This part of the code aims to create regression trees for each of the different states. This was done by breaking the code up in
+the separate states to get a better idea of each tree. Once that is done, the ZHVI and sizerank columns were selected to be studied 
+since these give the best insight on the dataset. As you can see in the regression trees, MD and DC have a high amount of complexity
+and branches on the tree. This indicates a high variability across these two states in accordance to sizerank. When looking at VA 
+however, the decsion tree is very simple, which means there is less variability and size rank may not be the best indicator.
+
+**Smart Question 1** 
+---
+title: "Housing Price Analysis (2021-2023)"
+author: "Sagar Shah"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r, warning=FALSE, message=FALSE}
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+
+# Load the data
+file_path <- "~/Documents/Introduction To Data Science /zhvi-all-homes_md-va-dc_2021-2023.csv"
+df <- read.csv(file_path)
+
+# Convert 'month' column to Date
+df$month <- as.Date(df$month)
+
+# Cities to analyze
+cities <- c("Washington", "Baltimore", "Richmond", "Alexandria")
+
+# Plot housing price trends for the selected cities
+for (city in cities) {
+  city_data <- df %>% filter(City == city)
+  plot <- ggplot(city_data, aes(x = month, y = ZHVI)) +
+    geom_line(color = "blue") +
+    labs(
+      title = paste("Housing Price Trend in", city, "(2021-2023)"),
+      x = "Date",
+      y = "Zillow Home Value Index (ZHVI)"
+    ) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  print(plot)
+}
+
+# Urban vs Rural comparison
+median_rank <- median(df$SizeRank, na.rm = TRUE)
+df <- df %>%
+  mutate(Urban = ifelse(SizeRank <= median_rank, "Urban", "Rural"))
+
+ggplot(df, aes(x = Urban, y = ZHVI)) +
+  geom_boxplot() +
+  labs(
+    title = "Urban vs Rural Housing Price Variation",
+    x = "",
+    y = "Zillow Home Value Index (ZHVI)"
+  ) +
+  scale_x_discrete(labels = c("Rural", "Urban")) +
+  theme_minimal()
+
+```
+Housing Price Analysis (2021-2023) Project Overview:
+
+This analysis examines housing price trends from 2021 to 2023 using Zillow Home Value Index (ZHVI) data. The study focuses on key cities — Washington, Baltimore, Richmond, and Alexandria — to visualize price movements over time. Each city’s ZHVI is plotted to reveal trends and fluctuations.
+
+Additionally, an Urban vs. Rural comparison is conducted. Properties are classified as “Urban” or “Rural” based on their SizeRank (a ranking of market size), with urban areas having smaller ranks. A boxplot illustrates the differences in housing prices between urban and rural areas, highlighting variations in property values across these settings.
+
+This dual analysis helps understand both city-level trends and urban-rural differences in housing prices.
+
+
+
+**Smart Question 2**
+---
+title: "Housing Price Analysis (2021-2023)"
+author: "Sagar Shah"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+# Load necessary libraries
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+
+# Load the data
+file_path <- "~/Documents/Introduction To Data Science /zhvi-all-homes_md-va-dc_2021-2023.csv"
+df <- read.csv(file_path)
+
+# Convert 'month' column to Date type
+df$month <- as.Date(df$month)
+
+# Specify the cities you want to analyze
+selected_cities <- c('Arlington', 'Alexandria')  # Add a second city here
+
+# Filter data for the selected cities
+city_data <- df %>%
+  filter(City %in% selected_cities)
+
+# Calculate rate of change in housing prices for each city
+city_data <- city_data %>%
+  group_by(City) %>%
+  arrange(month) %>%
+  mutate(ZHVI_pct_change = c(NA, diff(ZHVI) / head(ZHVI, -1)))
+
+# Plot rate of change for both cities
+ggplot(city_data, aes(x = month, y = ZHVI_pct_change, color = City)) +
+  geom_line() +
+  ggtitle('Monthly Rate of Change in Housing Prices') +
+  xlab('Date') +
+  ylab('Percentage Change') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Calculate average annual growth rate for each city
+growth_rates <- city_data %>%
+  group_by(City) %>%
+  summarize(
+    total_growth = (last(ZHVI) / first(ZHVI)) - 1,
+    years = as.numeric(difftime(max(month), min(month), units = "days")) / 365,
+    annual_growth_rate = (1 + total_growth)^(1 / years) - 1
+  )
+
+# Print annual growth rates
+growth_rates %>%
+  mutate(annual_growth_rate_pct = annual_growth_rate * 100) %>%
+  select(City, annual_growth_rate_pct) %>%
+  print()
+
+# Housing affordability relative to median income
+median_income <- 75000  # Replace with actual median income (assume the same for both cities)
+
+city_data <- city_data %>%
+  mutate(price_to_income_ratio = ZHVI / median_income)
+
+# Plot price-to-income ratio for both cities
+ggplot(city_data, aes(x = month, y = price_to_income_ratio, color = City)) +
+  geom_line() +
+  ggtitle('Housing Affordability (Price-to-Income Ratio)') +
+  xlab('Date') +
+  ylab('Price-to-Income Ratio') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Print current price-to-income ratio for each city
+current_ratios <- city_data %>%
+  group_by(City) %>%
+  summarize(current_price_to_income_ratio = last(price_to_income_ratio))
+
+print(current_ratios)
+```
+This project analyzes housing price trends in Arlington and Alexandria from 2021 to 2023. Key components include:
+	1.	Rate of Change in Housing Prices: The monthly percentage change in Zillow Home Value Index (ZHVI) is calculated for both cities. A line plot visualizes these changes over time, allowing for comparison of market volatility between the two cities.
+	2.	Annual Growth Rate: The total growth in housing prices from 2021 to 2023 is used to compute the average annual growth rate for each city. This helps identify long-term trends in property appreciation.
+	3.	Housing Affordability (Price-to-Income Ratio): The price-to-income ratio, calculated as ZHVI divided by a median income of $75,000, shows how affordable housing is relative to local income. This metric is plotted over time for each city, providing insight into affordability trends.
+	4.	Summary Metrics: Key figures such as the current price-to-income ratio and the annual growth rate for each city are displayed to highlight the differences in affordability and housing market performance between Arlington and Alexandria.
+
+These analyses help in understanding market behavior, affordability, and investment potential in the two cities.
+
 
 **Summarized write up and conclusion**
 
-Our SMART question was a bit of both inference and prediction. We acknowledge that home value/price data can be very complex in the real world with many factors holding varying influence over the given value of a home. The work we did modeling in this project is direct proof of this. Not only did we use the model to try and determine what exactly influences the value of Zillow home value, but we tried to use the influences we found to test if we can build a model that can decently predict so. By taking our model and splitting training and testing data by certain years of our dataset we were able to see the predictive power of the model by comparing its results with our actual data for 2023. 
+We decided to continue using the same dataset as we analyzed in our first project. This meant that the EDA was largely the same between both projects. One new piece of EDA that was added 
+for the second project was adding a correlation matrix between the Sizerank and ZHVI values. This was important because it added an understanding as to how important this variable was to 
+the ZHVI. Only this variable was used in the correlation matrix since it was the only continuous variable present in the original dataset since all the other variables were either 
+categorical or related to Sizerank. Other important pieces of EDA include evaluating the general trends of ZHVI prices across the different states from year to year. We saw a trend that 
+DC on average had the highest housing prices, followed by Maryland and then Virginia. Housing prices also followed a similar trend between Virginia and Maryland, as there was an increase 
+in average ZHVI value every year. D.C. had a bit of a different trend where it decreased and then increased again. These EDA were important in getting an initial understanding of how the 
+data behaves prior to any other more in-depth analysis done through building models. 
+
+We decided to use linear regression because of the variables that we wanted to use as predictors. A linear regression model allows us to study the effect each variable has on the 
+dependent variable (ZHVI). After looking at the R-squared of the linear regression model, we decided that maybe another model would have a higher R-squared value and better represent the 
+data. We then tried a random forest model to see if it would be a better fit. A random forest model is better suited for more complex data, like our housing dataset, so this model was 
+used. Random forest models generate trees and use bootstrap aggregation to build a model that can handle multiple variables. This model is useful since this bootstrapping method makes 
+sure that the model isn't overfitting. Lastly, we used decision trees to visualize the complexity and variability of the data. Regression trees were used since it was testing between two 
+continuous variables. 
+
+Our SMART question was a bit of both inference and prediction. We acknowledge that home value/price data can be very complex in the real world with many factors holding varying influence 
+over the given value of a home. The work we did modeling in this project is direct proof of this. Not only did we use the model to try and determine what exactly influences the value of 
+Zillow home value, but we also tried to use the influences we found to test if we can build a model that can decently predict so. By taking our model and splitting training and testing 
+data by certain years of our dataset we were able to see the predictive power of the model by comparing its results with our actual data for 2023. Our SMART questions also aimed to 
+understand the current trends in the housing market by analyzing the data over the past 3 years. We also aim to predict the trends of housing data in the future by modeling it with the 
+dataset. 
+
+An interesting interpretation that was drawn from the dataset was that the lower SizeRanks (larger areas) correlated with a higher ZHVI. This was also seen by the fact that the lower 
+Sizeranks were the ones in the Metro areas. This was labeled in the dataset under the Metro column. This interpretation follows the general trend that metropolitan areas tend to be more 
+expensive than suburbs, which holds in the DMV area. When we added the average household income to this dataset from the census dataset, we also found that there was a correlation between 
+household income and ZHVI values. This makes sense, as people who make more money would live in more expensive houses, which also translates to a higher ZHVI value. Another interesting 
+finding was how each state had a different variability within ZHVI values. This was seen in our regression trees as MD and DC had a high amount of variation, which resulted in a very 
+complex tree. VA on the other hand, had a very simple tree with only 2 nodes which indicates less variation. The overall trend was very similar since all of the states had an overall 
+increase from 2021 to 2023. These findings were consistent with research conducted by the U.S. Housing Finance Agency that found a similar trend across the United States. 
+
+There could be potential additional analysis that could be done in this study that would improve the analysis. The original dataset only included geographical information, which makes the 
+study simple in its implementation. During the process of this project, we added other measures like number of households and average household income from other datasets to try to test 
+certain non-geographical variables as well. This was a good starting point for understanding indicators of an increase in ZHVI. By adding different variables that would broaden the range 
+of this study, it could be valuable in understanding why housing prices are increasing not just that they are increasing. This would also help with the limitation that this dataset only 
+includes geographical data since it adds different types of data as well. This could also improve the model by further explaining trends in ZHVI changes. 
+
+In conclusion, our project was designed to the recent trends in housing prices in the DMV. This was done by looking at the Zillow dataset that showed the ZHVI values for corresponding 
+areas in the DMV area. The ZHVI value is a number generated by Zillow that gives an estimate of the housing values in an area. In our study, we used logistic regression models, random 
+forest models, regression trees, and many different types of explanatory data analysis to try to determine the effect of different variables on ZHVI value. Other variables were also added 
+through the process of the project to get a more holistic view of the trends. We found that overall housing prices in the DMV are increasing and that Sizerank and housing income are just 
+some of the variables that can produce a good model for changes in ZHVI value. Further analysis could be done in the future to continue making this model more reliable like adding 
+different variables that could explain ZHVI.
+
+References 
+U.S. House Prices Rise 5.7 Percent over the Last Year; Up 0.9 Percent from the First Quarter of 2024 | FEDERAL HOUSING FINANCE AGENCY. (2024, August 27). FHFA.gov. 
+https://www.fhfa.gov/news/news-release/u.s.-house-prices-rise-5.7-percent-over-the-last-year-up-0.9-percent-from-the-first-quarter-of-2024
