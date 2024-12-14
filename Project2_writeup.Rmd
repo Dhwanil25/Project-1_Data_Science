@@ -11,13 +11,13 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-*Read in dataset*
+#Read in dataset#
 ```{r}
 housing_data <- read.csv("housingdata.csv")
 ```
 
 
-*Summarize the most important parts of EDA here*
+#Summarize the most important parts of EDA here#
 
 From our EDA before, we found the ZHVI to continuously go up year by year for every region in the DMV except for D.C. in between years 2022-2023. Homes in the areas were most expensive in D.C. then Maryland, and then Virginia. 
 
@@ -26,7 +26,7 @@ Statistical testing confirmed that the difference in ZHVIs between the three reg
 We also did statistical testing on each region year by year. The result was the difference in ZHVI for D.C. throughout all three years was not statistically significant. The changes in ZHVI for D.C. were not as heavy as both MD and VA. Statistical testing for MD revealed the difference in ZHVI in just Maryland between 2021-2023 was statistically significant. The same result for VA.
 
 
-*Modeling work*
+#Modeling work#
 
 
 ```{r}
@@ -43,7 +43,7 @@ ggplot(housing_data, aes(x = ZHVI)) +
 The target variable in our models, ZHVI, doesn't look normally distributed so before moving forward with modeling it's best to transform it to have it be as normally distributed as possible. We will do that below.
 
 
-*Creating log transformed ZHVI*
+#Creating log transformed ZHVI#
 ```{r}
 #Create a new column for log transformed ZHVI
 housing_data$log_of_ZHVI <- log(housing_data$ZHVI)
@@ -61,7 +61,7 @@ ggplot(housing_data, aes(x = log_of_ZHVI))+
 After transforming the target variable, we can observe that the variable isn't perfectly distributed, but it's taken a large step in coming as close as possible to being normally distributed as possible. Therefore, we will move forward with the transformation being our target variable in future models.
 
 
-*Preparing predictors to work in models*
+#Preparing predictors to work in models#
 ```{r}
 #Creating a year variable and making it numeric
 housing_data$year <- substr(housing_data$month, 1, 4)
@@ -96,7 +96,7 @@ For the second model where we replaced Zipcode with the variable City instead. T
 
 
 
-*Simple Model 1 - Linear Regression without City or Zipcode*
+#Simple Model 1 - Linear Regression without City or Zipcode#
 
 ```{r}
 #Avoiding factor variables with a large number of levels
@@ -106,7 +106,7 @@ summary(ZHVI_model_simple)
 After simplifying the model by removing RegionName(zipcode) we see that the r-squared has dropped significantly to 0.576 and the adjusted r-squared is now 0.576. We believe we can build a model with a stronger predictive power. We also decided to check if maybe we can achieve so by using interactions. The downside is building a model with interaction can lead to more difficulty in interpretation and a higher complexity. Therefore, we have to decide if the trade-off is worth it. We will do so in the next code chunk. 
 
 
-*Check model with the same variables, this time adding interactions*
+#Check model with the same variables, this time adding interactions#
 ```{r}
 #Model this time showing interactions between year and state, year and metro, sizerank and metro
 ZHVI_model_interaction <- lm(log_of_ZHVI ~ year * State + year * Metro + SizeRank * Metro, data = housing_data)
@@ -128,7 +128,7 @@ With that being said, we want to move forward by keeping the model as simple as 
 
 Before moving forward with the initial simple model without interaction terms, we will check the assumptions of linear regression model are satisfied with the simple model.
 
-*Checking assumptions of linear regression models from our initial model with 4 predictors no interactions*
+#Checking assumptions of linear regression models from our initial model with 4 predictors no interactions#
 ```{r}
 #Checking residuals, normality, homoscedasticity
 
@@ -164,7 +164,7 @@ Following the residuals vs fitted plot and the q-q plot, we observe there is som
 
 This is to be expected since ZHVI was not normally distributed. Taking the log transformation of ZHVI helped, but didn't make it perfectly normally distributed. Let's check the mutlicollinearity. 
 
-*Checking simple linear regression model for collinearity*
+#Checking simple linear regression model for collinearity#
 ```{r}
 #Checking for Multicollinearity
 library(car)
@@ -175,7 +175,7 @@ vif(ZHVI_model_simple)
 
 Based on the output of the vif stats, we observe that the VIF for all variables is below 5 and is acceptable. We can move forward with adjusting the model based on this. Let us try and test the model by splitting the data by our newly created variable, year. We will train our data on the years 2021 and 2022 and test it on the year 2023. 
 
-*Testing and plotting results for simple linear regression*
+#Testing and plotting results for simple linear regression#
 ```{r}
 #Split into training and testing by year
 training_data <- subset(housing_data, year %in% c(2021, 2022))
@@ -222,7 +222,7 @@ To fully test how our model performs on unseen data, we decided to split the dat
 The results suggest that housing data in the real world can be very complex. Things like income, housing supply, household size, crime, and more were not included in the data Zillow provides from their website directly. This could explain the plateu we're witnessing when adding more variables from what we presently have. It's worth testing whether or not other models can perform better. Models that don't require some of the assumptions that were a bit tested in our dataset.
 
 
-*Trying GLS modeling*
+#Trying GLS modeling#
 ```{r}
 #Doing GLS modeling
 library(nlme)
@@ -238,7 +238,7 @@ After the presentation, I decided maybe it would make sense to do some GLS model
 
 
 
-*Trying RLM modeling*
+#Trying RLM modeling#
 
 ```{r}
 #RLM modeling
@@ -268,7 +268,7 @@ To move forward with modeling this dataset, we need to determine the following:
 Let us test if the linear model itself is the problem by using random forest. Random forest is a bit more suited for complex models than the linear model, so naturally we could expect a better explanation of the variance in our target variable. 
 
 
-*Testing random forest*
+#Testing random forest#
 ```{r}
 # Load necessary library for random forest
 library(randomForest)
@@ -319,7 +319,7 @@ What we can conclude from this is that again, housing data in the real world is 
 After much difficulty in developing a model with better predictive power, I decided to meet with Dr. Blumenthal at Gelman Library to learn how to merge new variables into the existing data we have. The two variables we will focus on is the number of houses in a given zipcode and the average income for a given zipcode. Dr. Blumenthal then gave me the follwing file called "Merged_ZHVI_ZCS.csv". We will dive into the data below.
 
 
-*Merging new variables into our current dataset*
+#Merging new variables into our current dataset#
 ```{r}
 library(dplyr)
 
@@ -361,7 +361,7 @@ The goal in adding these variables is for more of the variance in log(ZHVI) to b
 
 Modeling should check if these variabels are statistically significant and if they have strong coefficneints/impacts on the target variable.
 
-*New linear modeling with updated variables*
+#New linear modeling with updated variables#
 ```{r}
 
 housing_data_updated$log_of_ZHVI <- log(housing_data_updated$ZHVI)
@@ -389,7 +389,7 @@ SizeRank wasn't a strong coefficient at all. A decrease in Sizerank value (numbe
 
 Also, households wasn't significant at all either. The p-value was above 0.05. We've also plotted a linear regression model with interaction terms, but it's much harder to interpret, so we didn't present it. Also, the rsquared only increases with said interactions by about 0.03.
 
-*Doing interaction terms with new model*
+#Doing interaction terms with new model#
 ```{r}
 interaction_model <- lm(log_of_ZHVI ~ averageincome * households + averageincome * State + averageincome * Metro + SizeRank, data = housing_data_updated)
 summary(interaction_model)
@@ -402,7 +402,7 @@ The interaction term of average income and MD suggests the effect of average inc
 The multiple and adjusted r-squared are now 0.79. Now let's test the model.
 
 
-*Testing the same way with a scatterplot like the first simple model*
+#Testing the same way with a scatterplot like the first simple model#
 ```{r}
 # Split the data into training (2021-2022) and testing (2023)
 training_data <- subset(housing_data_updated, year %in% c(2021, 2022))
@@ -429,7 +429,7 @@ abline(0, 1, col = "red", lwd = 2)  # 45-degree line for perfect predictions
 Showing our new scatter plot, we can see that the blue data points are much closer to the red horizontal line reflecting a perfect prediction compared to our simple linear model that didn't have our new ACS variables.
 
 
-
+#Tree modeling#
 ```{r}
 
 
@@ -494,7 +494,7 @@ however, the decision tree is very simple, which means there is less variability
 
 
 
-**Summarized write up and conclusion**
+#Summarized write up and conclusion#
 
 We decided to continue using the same dataset as we analyzed in our first project. This meant that the EDA was largely the same between both projects. Important pieces of EDA include evaluating the general trends of ZHVI prices across the different states from year to year. We saw a trend that DC on average had the highest housing prices, followed by Maryland and then Virginia. Housing prices also followed a similar trend between Virginia and Maryland, as there was an increase in average ZHVI value every year. D.C. had a bit of a different trend where it increased and then decreased. These EDA were important in getting an initial understanding of how the data behaves prior to any other more in-depth analysis done through building models. 
 
