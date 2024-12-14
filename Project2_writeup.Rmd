@@ -694,6 +694,155 @@ since these give the best insight on the dataset. As you can see in the regressi
 and branches on the tree. This indicates a high variability across these two states in accordance to sizerank. When looking at VA 
 however, the decsion tree is very simple, which means there is less variability and size rank may not be the best indicator.
 
+**SmarT Questions 1** 
+---
+title: "Housing Price Analysis (2021-2023)"
+author: "Sagar Shah"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r, warning=FALSE, message=FALSE}
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+
+# Load the data
+file_path <- "~/Documents/Introduction To Data Science /zhvi-all-homes_md-va-dc_2021-2023.csv"
+df <- read.csv(file_path)
+
+# Convert 'month' column to Date
+df$month <- as.Date(df$month)
+
+# Cities to analyze
+cities <- c("Washington", "Baltimore", "Richmond", "Alexandria")
+
+# Plot housing price trends for the selected cities
+for (city in cities) {
+  city_data <- df %>% filter(City == city)
+  plot <- ggplot(city_data, aes(x = month, y = ZHVI)) +
+    geom_line(color = "blue") +
+    labs(
+      title = paste("Housing Price Trend in", city, "(2021-2023)"),
+      x = "Date",
+      y = "Zillow Home Value Index (ZHVI)"
+    ) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  print(plot)
+}
+
+# Urban vs Rural comparison
+median_rank <- median(df$SizeRank, na.rm = TRUE)
+df <- df %>%
+  mutate(Urban = ifelse(SizeRank <= median_rank, "Urban", "Rural"))
+
+ggplot(df, aes(x = Urban, y = ZHVI)) +
+  geom_boxplot() +
+  labs(
+    title = "Urban vs Rural Housing Price Variation",
+    x = "",
+    y = "Zillow Home Value Index (ZHVI)"
+  ) +
+  scale_x_discrete(labels = c("Rural", "Urban")) +
+  theme_minimal()
+
+Housing Price Analysis (2021-2023) Project Overview:
+
+This analysis examines housing price trends from 2021 to 2023 using Zillow Home Value Index (ZHVI) data. The study focuses on key cities — Washington, Baltimore, Richmond, and Alexandria — to visualize price movements over time. Each city’s ZHVI is plotted to reveal trends and fluctuations.
+
+Additionally, an Urban vs. Rural comparison is conducted. Properties are classified as “Urban” or “Rural” based on their SizeRank (a ranking of market size), with urban areas having smaller ranks. A boxplot illustrates the differences in housing prices between urban and rural areas, highlighting variations in property values across these settings.
+
+This dual analysis helps understand both city-level trends and urban-rural differences in housing prices.
+
+**Smart Question 2**
+---
+title: "Housing Price Analysis (2021-2023)"
+author: "Sagar Shah"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+# Load necessary libraries
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+
+# Load the data
+file_path <- "~/Documents/Introduction To Data Science /zhvi-all-homes_md-va-dc_2021-2023.csv"
+df <- read.csv(file_path)
+
+# Convert 'month' column to Date type
+df$month <- as.Date(df$month)
+
+# Specify the cities you want to analyze
+selected_cities <- c('Arlington', 'Alexandria')  # Add a second city here
+
+# Filter data for the selected cities
+city_data <- df %>%
+  filter(City %in% selected_cities)
+
+# Calculate rate of change in housing prices for each city
+city_data <- city_data %>%
+  group_by(City) %>%
+  arrange(month) %>%
+  mutate(ZHVI_pct_change = c(NA, diff(ZHVI) / head(ZHVI, -1)))
+
+# Plot rate of change for both cities
+ggplot(city_data, aes(x = month, y = ZHVI_pct_change, color = City)) +
+  geom_line() +
+  ggtitle('Monthly Rate of Change in Housing Prices') +
+  xlab('Date') +
+  ylab('Percentage Change') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Calculate average annual growth rate for each city
+growth_rates <- city_data %>%
+  group_by(City) %>%
+  summarize(
+    total_growth = (last(ZHVI) / first(ZHVI)) - 1,
+    years = as.numeric(difftime(max(month), min(month), units = "days")) / 365,
+    annual_growth_rate = (1 + total_growth)^(1 / years) - 1
+  )
+
+# Print annual growth rates
+growth_rates %>%
+  mutate(annual_growth_rate_pct = annual_growth_rate * 100) %>%
+  select(City, annual_growth_rate_pct) %>%
+  print()
+
+# Housing affordability relative to median income
+median_income <- 75000  # Replace with actual median income (assume the same for both cities)
+
+city_data <- city_data %>%
+  mutate(price_to_income_ratio = ZHVI / median_income)
+
+# Plot price-to-income ratio for both cities
+ggplot(city_data, aes(x = month, y = price_to_income_ratio, color = City)) +
+  geom_line() +
+  ggtitle('Housing Affordability (Price-to-Income Ratio)') +
+  xlab('Date') +
+  ylab('Price-to-Income Ratio') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Print current price-to-income ratio for each city
+current_ratios <- city_data %>%
+  group_by(City) %>%
+  summarize(current_price_to_income_ratio = last(price_to_income_ratio))
+
+print(current_ratios)
+
+This project analyzes housing price trends in Arlington and Alexandria from 2021 to 2023. Key components include:
+	1.	Rate of Change in Housing Prices: The monthly percentage change in Zillow Home Value Index (ZHVI) is calculated for both cities. A line plot visualizes these changes over time, allowing for comparison of market volatility between the two cities.
+	2.	Annual Growth Rate: The total growth in housing prices from 2021 to 2023 is used to compute the average annual growth rate for each city. This helps identify long-term trends in property appreciation.
+	3.	Housing Affordability (Price-to-Income Ratio): The price-to-income ratio, calculated as ZHVI divided by a median income of $75,000, shows how affordable housing is relative to local income. This metric is plotted over time for each city, providing insight into affordability trends.
+	4.	Summary Metrics: Key figures such as the current price-to-income ratio and the annual growth rate for each city are displayed to highlight the differences in affordability and housing market performance between Arlington and Alexandria.
+
+These analyses help in understanding market behavior, affordability, and investment potential in the two cities.
+
 
 **Summarized write up and conclusion**
 
