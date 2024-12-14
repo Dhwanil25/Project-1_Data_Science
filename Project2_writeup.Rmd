@@ -92,7 +92,7 @@ Based on what we know about these variables, it would be counterintuitive to inc
 
 The result for the model with Zipcode is a model that's very over fitting. With a multiple and adjusted R-squared of 0.996 as well as a residual standard error of 0.0393. 
 
-For the second model where we replaced Zipcode with the variable City instead. The reasoning was simply because City had fewer levels than Zipcode. Here we observed a multiple R-squared of 0.9299 and an adjusted R-squared of 0.9283. For this model, it's worth double checking and testing overfitting. We excluded it from our presentation for the sake of the audience's ability to interpret it and model complexity. We will test overfitting below. 
+For the second model where we replaced Zipcode with the variable City instead. The reasoning was simply because City had fewer levels than Zipcode. Here we observed a multiple R-squared of 0.9299 and an adjusted R-squared of 0.9283. For this model, it's worth double checking and testing overfitting. We excluded it from our presentation for the sake of the audience's ability to interpret it and model complexity. We also tested overfitting for that too, but again the knitting froze when including those code chunks. 
 
 
 
