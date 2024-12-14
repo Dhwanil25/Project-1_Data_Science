@@ -694,7 +694,7 @@ since these give the best insight on the dataset. As you can see in the regressi
 and branches on the tree. This indicates a high variability across these two states in accordance to sizerank. When looking at VA 
 however, the decsion tree is very simple, which means there is less variability and size rank may not be the best indicator.
 
-**SmarT Questions 1** 
+**Smart Question 1** 
 ---
 title: "Housing Price Analysis (2021-2023)"
 author: "Sagar Shah"
